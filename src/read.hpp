@@ -14,7 +14,6 @@ struct Table
         for(const auto& [col, token]: std::views::zip(data, line | std::views::split(delimiter)))
         {
             col.emplace_back(&*token.begin(), std::ranges::distance(token));
-            // col.emplace_back(token);
         }
     }
 };

@@ -20,19 +20,14 @@ int main() {
         }));
     }
 
-    bool isCheckboxTicked = false;
-    auto checkbox = Checkbox("come check this", &isCheckboxTicked);
+    auto main_container = Container::Vertical(components);
 
-    auto main_container = Container::Vertical(components) | border;
+    auto with_title = Renderer(main_container, [&]{
+            return window(text("LazyViewer"), main_container->Render());
+            });
 
     auto screen = ScreenInteractive::Fullscreen();
-    auto app = CatchEvent(main_container, [&](Event event){
-        if(event == Event::Character('c'))
-        {
-            isCheckboxTicked = !isCheckboxTicked;
-            return true;
-        }
-
+    auto app = CatchEvent(with_title, [&](Event event){
         if(event == Event::Character('q'))
         {
             screen.ExitLoopClosure()();
