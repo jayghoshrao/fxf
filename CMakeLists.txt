@@ -5,7 +5,7 @@ project(lazyviewer
   VERSION 1.0.0
 )
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -26,7 +26,7 @@ FetchContent_Declare(ftxui
 FetchContent_MakeAvailable(ftxui)
 # ------------------------------------------------------------------------------
 
-add_executable(lazyviewer src/main.cpp)
+add_executable(lazyviewer src/read.cpp src/main.cpp)
 target_include_directories(lazyviewer PRIVATE src)
 
 target_link_libraries(lazyviewer
