@@ -5,10 +5,7 @@ auto split_csv_line(std::string_view line, char delimiter = ',')
 {
     return line
         | std::views::split(delimiter)
-        | std::views::transform([](auto &&subrange)
-                {
-                return std::string_view(&*subrange.begin(), std::ranges::distance(subrange));
-                });
+        | std::ranges::to<std::vector>();
 }
 
 namespace io{
@@ -25,7 +22,7 @@ namespace io{
         size_t size{0};
         if(std::getline(file, probeline))
         {
-            size = std::ranges::distance(split_csv_line(probeline));
+            size = split_csv_line(probeline).size();
         }
         else
         {
