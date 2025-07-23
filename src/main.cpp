@@ -13,12 +13,12 @@ int main() {
 
     int selector{0};
 
-    auto table = io::read_table("test.csv");
+    auto table = io::read_table("local_bookmarks_youtube.txt");
 
     auto menuopt = MenuOption();
-    auto menu = Menu(&table[0], &selector, menuopt) | border;
+    auto menu = Menu(&table[0], &selector, menuopt);
 
-    auto& main_container = menu;
+    auto main_container = Renderer(menu, [&]{ return menu->Render() | vscroll_indicator | frame | border;});
 
     auto screen = ScreenInteractive::Fullscreen();
     auto app = CatchEvent(main_container, [&](Event event){
