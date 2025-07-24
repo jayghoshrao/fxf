@@ -6,6 +6,7 @@
 #include <ftxui/component/screen_interactive.hpp>
 #include <ftxui/screen/string.hpp>
 
+#include "utils.hpp"
 #include "read.hpp"
 
 int main() {

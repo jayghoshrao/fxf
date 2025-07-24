@@ -1,12 +1,7 @@
 #include "read.hpp"
 #include <fstream>
 
-auto split_csv_line(std::string_view line, char delimiter = ',')
-{
-    return line
-        | std::views::split(delimiter)
-        | std::ranges::to<std::vector>();
-}
+#include "utils.hpp"
 
 namespace io{
 
@@ -22,7 +17,7 @@ namespace io{
         size_t size{0};
         if(std::getline(file, probeline))
         {
-            size = split_csv_line(probeline).size();
+            size = split_csv_line_view(probeline).size();
         }
         else
         {
