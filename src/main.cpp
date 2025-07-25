@@ -27,10 +27,9 @@ int main() {
     auto menuOption = MenuOption();
     auto menu = Menu(&menuEntries, &selector, menuOption);
 
+    std::string commandString = "";
     auto commandInputOption = InputOption::Default();
     commandInputOption.multiline = false;
-
-    std::string commandString = "";
     commandInputOption.on_enter = [&]() {
         auto begin = commandString.find_first_not_of(" ");
         auto end = commandString.find_last_not_of(" ");
@@ -41,6 +40,15 @@ int main() {
     };
 
     auto commandInput = Input(&commandString, &commandString, commandInputOption);
+    commandInput |= CatchEvent([&](Event event){
+            if(event == Event::Escape)
+            {
+                commandString = "";
+                state::isCommandDialogShown = false;
+                return true;
+            }
+            return false;
+            });
     auto commandDialog = Renderer(commandInput, [&]{ return 
                 commandInput->Render() | size(WIDTH, GREATER_THAN, 30)
             ;}) | border | center;
