@@ -36,6 +36,29 @@ int main() {
     auto menuOption = MenuOption();
     auto menu = Menu(&appState.menuEntries, &appState.selector, menuOption);
 
+    menu |= CatchEvent([&](Event event){
+        if(event == Event::Character('G'))
+        {
+            menu->OnEvent(Event::End);
+            return true;
+        }
+        static bool got_g = false;
+
+        if(event == Event::Character('g')) {
+            if(got_g) {
+                got_g = false;
+                menu->OnEvent(Event::Home);
+                return true;
+            } else {
+                got_g = true;
+                return true;
+            }
+        }
+
+        got_g = false;
+        return false;
+    });
+
     std::string commandString = "";
     auto commandInputOption = InputOption::Default();
     commandInputOption.multiline = false;
@@ -45,8 +68,8 @@ int main() {
             auto result = split_csv_line_view(commandString, ' ');
 
             if(result[0] == "read"
-                    && result.size() == 2 
-                    && fs::is_regular_file(result[1]))
+                && result.size() == 2 
+                && fs::is_regular_file(result[1]))
             {
                 appState.table = io::read_table(result[1]);
                 appState.menuEntries = appState.table[0];
@@ -55,22 +78,22 @@ int main() {
 
             appState.isCommandDialogShown = false;
             commandString = "";
-            });
+        });
     };
 
     auto commandInput = Input(&commandString, &commandString, commandInputOption);
     commandInput |= CatchEvent([&](Event event){
-            if(event == Event::Escape)
-            {
-                commandString = "";
-                appState.isCommandDialogShown = false;
-                return true;
-            }
-            return false;
-            });
+        if(event == Event::Escape)
+        {
+            commandString = "";
+            appState.isCommandDialogShown = false;
+            return true;
+        }
+        return false;
+    });
     auto commandDialog = Renderer(commandInput, [&]{ return 
-                commandInput->Render() | size(WIDTH, GREATER_THAN, 30)
-            ;}) | border | center;
+        commandInput->Render() | size(WIDTH, GREATER_THAN, 30)
+        ;}) | border | center;
 
     auto mainContainer = Renderer(menu, [&]{ return menu->Render() | size(WIDTH, LESS_THAN, Terminal::Size().dimx - 3) | vscroll_indicator | frame | border;}) | Modal(commandDialog, &appState.isCommandDialogShown);
 
