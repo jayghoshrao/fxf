@@ -7,45 +7,40 @@
 #include <ftxui/component/screen_interactive.hpp>
 #include <ftxui/screen/string.hpp>
 
-
-
 #include "utils.hpp"
 #include "read.hpp"
 
 using namespace ftxui;
 namespace fs = std::filesystem;
 
-namespace state{
-    static bool isCommandDialogShown = false;
-    static Table table(0);
-    static int selector = 0;
-    static std::vector<std::string> menuEntries;
-    ScreenInteractive screen = ScreenInteractive::Fullscreen();
-}
-
-void ExecuteCommand(std::string commandString)
+struct AppState
 {
-
-}
+    bool isCommandDialogShown = false;
+    Table table{0};
+    int selector = 0;
+    std::vector<std::string> menuEntries;
+    ScreenInteractive screen = ScreenInteractive::Fullscreen();
+};
 
 int main() {
 
-    state::table = io::read_table("pocket.list");
+    AppState appState;
+    appState.table = io::read_table("pocket.list");
 
-    // state::menuEntries = state::table[0] | std::views::transform([](std::string_view line){
+    // appState.menuEntries = appState.table[0] | std::views::transform([](std::string_view line){
     //         return split_csv_line_view(line,'|')[0];
     //         }) | std::ranges::to<std::vector<std::string>>();
 
-    state::menuEntries = state::table[0];
+    appState.menuEntries = appState.table[0];
 
     auto menuOption = MenuOption();
-    auto menu = Menu(&state::menuEntries, &state::selector, menuOption);
+    auto menu = Menu(&appState.menuEntries, &appState.selector, menuOption);
 
     std::string commandString = "";
     auto commandInputOption = InputOption::Default();
     commandInputOption.multiline = false;
     commandInputOption.on_enter = [&]{
-        state::screen.Post([&]{
+        appState.screen.Post([&]{
 
             auto result = split_csv_line_view(commandString, ' ');
 
@@ -53,12 +48,12 @@ int main() {
                     && result.size() == 2 
                     && fs::is_regular_file(result[1]))
             {
-                state::table = io::read_table(result[1]);
-                state::menuEntries = state::table[0];
-                state::selector = 0;
+                appState.table = io::read_table(result[1]);
+                appState.menuEntries = appState.table[0];
+                appState.selector = 0;
             }
 
-            state::isCommandDialogShown = false;
+            appState.isCommandDialogShown = false;
             commandString = "";
             });
     };
@@ -68,7 +63,7 @@ int main() {
             if(event == Event::Escape)
             {
                 commandString = "";
-                state::isCommandDialogShown = false;
+                appState.isCommandDialogShown = false;
                 return true;
             }
             return false;
@@ -77,18 +72,18 @@ int main() {
                 commandInput->Render() | size(WIDTH, GREATER_THAN, 30)
             ;}) | border | center;
 
-    auto mainContainer = Renderer(menu, [&]{ return menu->Render() | size(WIDTH, LESS_THAN, Terminal::Size().dimx - 3) | vscroll_indicator | frame | border;}) | Modal(commandDialog, &state::isCommandDialogShown);
+    auto mainContainer = Renderer(menu, [&]{ return menu->Render() | size(WIDTH, LESS_THAN, Terminal::Size().dimx - 3) | vscroll_indicator | frame | border;}) | Modal(commandDialog, &appState.isCommandDialogShown);
 
     auto mainEventHandler = CatchEvent(mainContainer, [&](Event event){
         if(event == Event::Character('q'))
         {
-            state::screen.ExitLoopClosure()();
+            appState.screen.ExitLoopClosure()();
             return true;
         }
 
         if(event == Event::Character(':'))
         {
-            state::isCommandDialogShown = true;
+            appState.isCommandDialogShown = true;
             commandDialog->TakeFocus();
             return true;
         }
@@ -98,7 +93,7 @@ int main() {
 
 
     mainContainer->TakeFocus();
-    state::screen.Loop(mainEventHandler);
+    appState.screen.Loop(mainEventHandler);
 
     return EXIT_SUCCESS;
 }
