@@ -18,8 +18,19 @@ struct Table
             col.emplace_back(&*token.begin(), std::ranges::distance(token));
         }
     }
+
+    std::vector<std::string> get_row(size_t idx)
+    {
+        std::vector<std::string> result;
+        for(const auto& col : data)
+        {
+            result.emplace_back(col[idx]);
+        }
+        return result;
+    }
+
 };
 
 namespace io{
-    Table read_table(std::string_view filename);
+    Table read_table(std::string_view filename, char delimiter=',');
 }

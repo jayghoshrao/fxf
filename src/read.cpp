@@ -5,7 +5,7 @@
 
 namespace io{
 
-    Table read_table(std::string_view filename)
+    Table read_table(std::string_view filename, char delimiter /*= ','*/)
     {
         std::ifstream file(std::string{filename});
         if(!file)
@@ -17,7 +17,7 @@ namespace io{
         size_t size{0};
         if(std::getline(file, probeline))
         {
-            size = split_csv_line_view(probeline).size();
+            size = split_csv_line_view(probeline, delimiter).size();
         }
         else
         {
@@ -32,7 +32,7 @@ namespace io{
         file.seekg(0, std::ios::beg);
         for(std::string line; std::getline(file,line);)
         {
-            table.add_line(line);
+            table.add_line(line, delimiter);
         }
         return table;
     };
