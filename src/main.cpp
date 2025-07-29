@@ -21,6 +21,7 @@ struct AppState
     int selector = 0;
     std::vector<std::string> menuEntries;
     ScreenInteractive screen = ScreenInteractive::Fullscreen();
+    std::string commandString = "";
 };
 
 int main() {
@@ -83,22 +84,21 @@ int main() {
     });
 
 
-    std::string commandString = "";
     auto commandInputOption = InputOption::Default();
     commandInputOption.multiline = false;
     commandInputOption.on_enter = [&]{
         appState.screen.Post([&]{
-            registry.Execute(commandString);
+            registry.Execute(appState.commandString);
             appState.isCommandDialogShown = false;
-            commandString = "";
+            appState.commandString = "";
         });
     };
 
-    auto commandInput = Input(&commandString, &commandString, commandInputOption);
+    auto commandInput = Input(&appState.commandString, &appState.commandString, commandInputOption);
     commandInput |= CatchEvent([&](Event event){
         if(event == Event::Escape)
         {
-            commandString = "";
+            appState.commandString = "";
             appState.isCommandDialogShown = false;
             return true;
         }
