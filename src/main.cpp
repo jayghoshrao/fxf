@@ -24,6 +24,65 @@ struct AppState
     std::string commandString = "";
 };
 
+Component CreateCommandDialog(AppState& appState, const CommandRegistry& registry)
+{
+    auto commandInputOption = InputOption::Default();
+    commandInputOption.multiline = false;
+    commandInputOption.on_enter = [&]{
+        appState.screen.Post([&]{
+            registry.Execute(appState.commandString);
+            appState.isCommandDialogShown = false;
+            appState.commandString = "";
+        });
+    };
+
+    auto commandInput = Input(&appState.commandString, &appState.commandString, commandInputOption);
+    commandInput |= CatchEvent([&](Event event){
+        if(event == Event::Escape)
+        {
+            appState.commandString = "";
+            appState.isCommandDialogShown = false;
+            return true;
+        }
+        return false;
+    });
+    return Renderer(commandInput, [=]{ return 
+        commandInput->Render() | size(WIDTH, EQUAL, Terminal::Size().dimx * 0.5)
+        ;}) | border ;
+}
+
+Component CreateMenu(AppState& appState)
+{
+    auto menuOption = MenuOption();
+    auto menu = Menu(&appState.menuEntries, &appState.selector, menuOption)
+        | vscroll_indicator | frame | border;
+
+    menu |= CatchEvent([&](Event event){
+        if(event == Event::Character('G'))
+        {
+            menu->OnEvent(Event::End);
+            return true;
+        }
+        static bool got_g = false;
+
+        if(event == Event::Character('g')) {
+            if(got_g) {
+                got_g = false;
+                menu->OnEvent(Event::Home);
+                return true;
+            } else {
+                got_g = true;
+                return true;
+            }
+        }
+
+        got_g = false;
+        return false;
+    });
+
+    return menu;
+}
+
 int main() {
 
     AppState appState;
@@ -56,57 +115,9 @@ int main() {
 
     appState.menuEntries = appState.table[0];
 
-    auto menuOption = MenuOption();
-    auto menu = Menu(&appState.menuEntries, &appState.selector, menuOption)
-        | vscroll_indicator | frame | border;
+    auto menu = CreateMenu(appState);
 
-    menu |= CatchEvent([&](Event event){
-        if(event == Event::Character('G'))
-        {
-            menu->OnEvent(Event::End);
-            return true;
-        }
-        static bool got_g = false;
-
-        if(event == Event::Character('g')) {
-            if(got_g) {
-                got_g = false;
-                menu->OnEvent(Event::Home);
-                return true;
-            } else {
-                got_g = true;
-                return true;
-            }
-        }
-
-        got_g = false;
-        return false;
-    });
-
-
-    auto commandInputOption = InputOption::Default();
-    commandInputOption.multiline = false;
-    commandInputOption.on_enter = [&]{
-        appState.screen.Post([&]{
-            registry.Execute(appState.commandString);
-            appState.isCommandDialogShown = false;
-            appState.commandString = "";
-        });
-    };
-
-    auto commandInput = Input(&appState.commandString, &appState.commandString, commandInputOption);
-    commandInput |= CatchEvent([&](Event event){
-        if(event == Event::Escape)
-        {
-            appState.commandString = "";
-            appState.isCommandDialogShown = false;
-            return true;
-        }
-        return false;
-    });
-    auto commandDialog = Renderer(commandInput, [&]{ return 
-        commandInput->Render() | size(WIDTH, EQUAL, Terminal::Size().dimx * 0.5)
-        ;}) | border ;
+    auto commandDialog = CreateCommandDialog(appState, registry);
 
     auto mainContainer = menu | Modal(commandDialog, &appState.isCommandDialogShown);
 
