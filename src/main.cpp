@@ -9,6 +9,7 @@
 
 #include "utils.hpp"
 #include "read.hpp"
+#include "command_registry.hpp"
 
 using namespace ftxui;
 namespace fs = std::filesystem;
@@ -25,7 +26,28 @@ struct AppState
 int main() {
 
     AppState appState;
-    appState.table = io::read_table("pocket.list");
+    CommandRegistry registry;
+
+    registry.Register("read", [&](const std::vector<std::string>& args) {
+        if(args.size() != 2)
+            return false;
+
+        const std::string& filename = args[1];
+        if(!fs::is_regular_file(filename))
+            return false;
+
+        appState.table = io::read_table(filename);
+        appState.menuEntries = appState.table[0];
+        appState.selector = 0; // TODO:
+        return true;
+    });
+
+    registry.Register("quit", [&](const std::vector<std::string>&) {
+        appState.screen.ExitLoopClosure()();
+        return true;
+    });
+
+    appState.table = io::read_table("local_bookmarks_youtube.txt");
 
     // appState.menuEntries = appState.table[0] | std::views::transform([](std::string_view line){
     //         return split_csv_line_view(line,'|')[0];
@@ -34,7 +56,8 @@ int main() {
     appState.menuEntries = appState.table[0];
 
     auto menuOption = MenuOption();
-    auto menu = Menu(&appState.menuEntries, &appState.selector, menuOption);
+    auto menu = Menu(&appState.menuEntries, &appState.selector, menuOption)
+        | vscroll_indicator | frame | border;
 
     menu |= CatchEvent([&](Event event){
         if(event == Event::Character('G'))
@@ -59,23 +82,13 @@ int main() {
         return false;
     });
 
+
     std::string commandString = "";
     auto commandInputOption = InputOption::Default();
     commandInputOption.multiline = false;
     commandInputOption.on_enter = [&]{
         appState.screen.Post([&]{
-
-            auto result = split_csv_line_view(commandString, ' ');
-
-            if(result[0] == "read"
-                && result.size() == 2 
-                && fs::is_regular_file(result[1]))
-            {
-                appState.table = io::read_table(result[1]);
-                appState.menuEntries = appState.table[0];
-                appState.selector = 0;
-            }
-
+            registry.Execute(commandString);
             appState.isCommandDialogShown = false;
             commandString = "";
         });
@@ -92,10 +105,10 @@ int main() {
         return false;
     });
     auto commandDialog = Renderer(commandInput, [&]{ return 
-        commandInput->Render() | size(WIDTH, GREATER_THAN, 30)
-        ;}) | border | center;
+        commandInput->Render() | size(WIDTH, EQUAL, Terminal::Size().dimx * 0.5)
+        ;}) | border ;
 
-    auto mainContainer = Renderer(menu, [&]{ return menu->Render() | size(WIDTH, LESS_THAN, Terminal::Size().dimx - 3) | vscroll_indicator | frame | border;}) | Modal(commandDialog, &appState.isCommandDialogShown);
+    auto mainContainer = menu | Modal(commandDialog, &appState.isCommandDialogShown);
 
     auto mainEventHandler = CatchEvent(mainContainer, [&](Event event){
         if(event == Event::Character('q'))
@@ -107,7 +120,6 @@ int main() {
         if(event == Event::Character(':'))
         {
             appState.isCommandDialogShown = true;
-            commandDialog->TakeFocus();
             return true;
         }
 
