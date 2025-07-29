@@ -111,7 +111,7 @@ int main() {
     auto mainContainer = menu | Modal(commandDialog, &appState.isCommandDialogShown);
 
     auto mainEventHandler = CatchEvent(mainContainer, [&](Event event){
-        if(event == Event::Character('q'))
+        if(event == Event::Character('q') && appState.isCommandDialogShown != true)
         {
             appState.screen.ExitLoopClosure()();
             return true;
