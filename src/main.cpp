@@ -93,7 +93,7 @@ std::string substitute_template(const std::string& template_str, const std::vect
     if (!data.empty()) {
         joined_data = std::accumulate(data.begin() + 1, data.end(), data[0], 
             [](const std::string& acc, const std::string& s) {
-                return acc + " " + s;
+                return acc + " | " + s;
             });
     }
 
