@@ -19,7 +19,7 @@ struct Table
         }
     }
 
-    std::vector<std::string> get_row(size_t idx)
+    std::vector<std::string> get_row(size_t idx) const
     {
         std::vector<std::string> result;
         for(const auto& col : data)

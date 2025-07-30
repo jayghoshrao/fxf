@@ -1,6 +1,8 @@
 #include <iostream>
 #include <filesystem>
 #include <numeric>
+#include <cstdlib>
+#include <map>
 
 #include <ftxui/dom/elements.hpp>
 #include <ftxui/component/component.hpp>
@@ -24,6 +26,63 @@ struct AppState
     ScreenInteractive screen = ScreenInteractive::Fullscreen();
     std::string commandString = "";
 };
+
+std::string substitute_template(const std::string& template_str, const std::vector<std::string>& data) {
+    std::string result = template_str;
+
+    // Create joined string for {} placeholder
+    std::string joined_data;
+    if (!data.empty()) {
+        joined_data = std::accumulate(data.begin() + 1, data.end(), data[0], 
+            [](const std::string& acc, const std::string& s) {
+                return acc + " | " + s;
+            });
+    }
+
+    // Replace {} with joined data
+    size_t pos = 0;
+    while ((pos = result.find("{}", pos)) != std::string::npos) {
+        result.replace(pos, 2, joined_data);
+        pos += joined_data.length();
+    }
+
+    // Replace numbered placeholders {0}, {1}, {2}, etc.
+    for (size_t i = 0; i < data.size(); ++i) {
+        std::string placeholder = "{" + std::to_string(i) + "}";
+        pos = 0;
+        while ((pos = result.find(placeholder, pos)) != std::string::npos) {
+            result.replace(pos, placeholder.length(), data[i]);
+            pos += data[i].length();
+        }
+    }
+
+    return result;
+}
+
+
+class KeybindRegistry {
+public:
+    void Register(std::string event, std::string_view command) {
+        map_[event] = command;
+    }
+
+    bool Execute(std::string key, AppState& appState) const {
+        if(auto it = map_.find(key); it != map_.end())
+        {
+            auto currentSplit = appState.table.get_row(appState.selector);
+            auto command = substitute_template(it->second, currentSplit);
+
+            std::system(command.c_str());
+            return true;
+        }
+        return false;
+    }
+
+private:
+    std::map<std::string, std::string> map_;
+};
+
+
 
 Component CreateCommandDialog(AppState& appState, const CommandRegistry& registry)
 {
@@ -85,42 +144,12 @@ Component CreateMenu(AppState& appState)
 }
 
 
-std::string substitute_template(const std::string& template_str, const std::vector<std::string>& data) {
-    std::string result = template_str;
-
-    // Create joined string for {} placeholder
-    std::string joined_data;
-    if (!data.empty()) {
-        joined_data = std::accumulate(data.begin() + 1, data.end(), data[0], 
-            [](const std::string& acc, const std::string& s) {
-                return acc + " | " + s;
-            });
-    }
-
-    // Replace {} with joined data
-    size_t pos = 0;
-    while ((pos = result.find("{}", pos)) != std::string::npos) {
-        result.replace(pos, 2, joined_data);
-        pos += joined_data.length();
-    }
-
-    // Replace numbered placeholders {0}, {1}, {2}, etc.
-    for (size_t i = 0; i < data.size(); ++i) {
-        std::string placeholder = "{" + std::to_string(i) + "}";
-        pos = 0;
-        while ((pos = result.find(placeholder, pos)) != std::string::npos) {
-            result.replace(pos, placeholder.length(), data[i]);
-            pos += data[i].length();
-        }
-    }
-
-    return result;
-}
 
 int main() {
 
     AppState appState;
     CommandRegistry registry;
+    KeybindRegistry keybinds;
 
     registry.Register("read", [&](const std::vector<std::string>& args) {
         if(args.size() != 3)
@@ -168,11 +197,25 @@ int main() {
         return true;
     });
 
-    appState.table = io::read_table("local_bookmarks_youtube.txt", '|');
+    registry.Register("bind", [&](const std::vector<std::string>& args){
+        if(args.size() < 3) 
+        {
+            return false;
+        }
 
-    // appState.menuEntries = appState.table[0] | std::views::transform([](std::string_view line){
-    //         return split_csv_line_view(line,'|')[0];
-    //         }) | std::ranges::to<std::vector<std::string>>();
+        std::string key = args[1];
+        std::string cmdTemplate;
+        size_t join_start_idx = 2;
+        for (size_t i = join_start_idx; i < args.size(); ++i) {
+            if (i > join_start_idx) cmdTemplate += " ";
+            cmdTemplate += args[i];
+        }
+
+        keybinds.Register(key, cmdTemplate);
+        return true;
+    });
+
+    appState.table = io::read_table("local_bookmarks_youtube.txt", '|');
 
     appState.menuEntries = appState.table[0];
 
@@ -195,7 +238,7 @@ int main() {
             return true;
         }
 
-        return false;
+        return keybinds.Execute(EventToString(event), appState);
     });
 
 
