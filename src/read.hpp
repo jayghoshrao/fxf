@@ -33,4 +33,5 @@ struct Table
 
 namespace io{
     Table read_table(std::string_view filename, char delimiter=',');
+    std::vector<std::string> read_lines(std::string filename);
 }

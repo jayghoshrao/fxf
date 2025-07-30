@@ -5,6 +5,21 @@
 
 namespace io{
 
+    std::vector<std::string> read_lines(std::string filename){
+        std::vector<std::string> lines;
+        std::ifstream file(filename);
+
+        if(file)
+        {
+            for(std::string line; std::getline(file,line);)
+            {
+                lines.emplace_back(line);
+            }
+        }
+
+        return lines;
+    }
+
     Table read_table(std::string_view filename, char delimiter /*= ','*/)
     {
         std::ifstream file(std::string{filename});
@@ -36,5 +51,6 @@ namespace io{
         }
         return table;
     };
+
 
 }

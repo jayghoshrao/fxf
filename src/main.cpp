@@ -19,12 +19,13 @@ namespace fs = std::filesystem;
 
 struct AppState
 {
-    bool isCommandDialogShown = false;
-    Table table{0};
-    int selector = 0;
+    std::vector<std::string> lines;
     std::vector<std::string> menuEntries;
     ScreenInteractive screen = ScreenInteractive::Fullscreen();
+    int selector = 0;
+    bool isCommandDialogShown = false;
     std::string commandString = "";
+    char delimiter = '|';
 };
 
 std::string substitute_template(const std::string& template_str, const std::vector<std::string>& data) {
@@ -69,7 +70,7 @@ public:
     bool Execute(std::string key, AppState& appState) const {
         if(auto it = map_.find(key); it != map_.end())
         {
-            auto currentSplit = appState.table.get_row(appState.selector);
+            auto currentSplit = split_csv_line(appState.lines[appState.selector], appState.delimiter);
             auto command = substitute_template(it->second, currentSplit);
 
             std::system(command.c_str());
@@ -161,8 +162,8 @@ int main() {
         if(!fs::is_regular_file(filename))
             return false;
 
-        appState.table = io::read_table(filename, delimiter[0]);
-        appState.menuEntries = appState.table[0];
+        appState.lines = io::read_lines(filename);
+        appState.menuEntries = appState.lines;
         appState.selector = 0; // TODO:
         return true;
     });
@@ -175,7 +176,7 @@ int main() {
     commands.Register("view", [&](const std::vector<std::string>& args) {
         if(args.size() < 2) 
         {
-            appState.menuEntries = appState.table[0];
+            appState.menuEntries = appState.lines;
             return true;
         }
 
@@ -190,7 +191,7 @@ int main() {
         size_t i=0;
         for(std::string& ref : appState.menuEntries)
         {
-            auto currentSplit = appState.table.get_row(i++);
+            auto currentSplit = split_csv_line(appState.lines[i++], appState.delimiter);
             ref = substitute_template(viewTemplate, currentSplit);
         }
 
@@ -215,16 +216,12 @@ int main() {
         return true;
     });
 
-    appState.table = io::read_table("local_bookmarks_youtube.txt", '|');
-
-    appState.menuEntries = appState.table[0];
+    appState.lines = io::read_lines("local_bookmarks_youtube.txt");
+    appState.menuEntries = appState.lines;
 
     auto menu = CreateMenu(appState);
-
     auto commandDialog = CreateCommandDialog(appState, commands);
-
     auto mainContainer = menu | Modal(commandDialog, &appState.isCommandDialogShown);
-
     auto mainEventHandler = CatchEvent(mainContainer, [&](Event event){
         if(appState.isCommandDialogShown)
         {
