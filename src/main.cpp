@@ -148,10 +148,10 @@ Component CreateMenu(AppState& appState)
 int main() {
 
     AppState appState;
-    CommandRegistry registry;
+    CommandRegistry commands;
     KeybindRegistry keybinds;
 
-    registry.Register("read", [&](const std::vector<std::string>& args) {
+    commands.Register("read", [&](const std::vector<std::string>& args) {
         if(args.size() != 3)
             return false;
 
@@ -167,12 +167,12 @@ int main() {
         return true;
     });
 
-    registry.Register("quit", [&](const std::vector<std::string>&) {
+    commands.Register("quit", [&](const std::vector<std::string>&) {
         appState.screen.ExitLoopClosure()();
         return true;
     });
 
-    registry.Register("view", [&](const std::vector<std::string>& args) {
+    commands.Register("view", [&](const std::vector<std::string>& args) {
         if(args.size() < 2) 
         {
             appState.menuEntries = appState.table[0];
@@ -197,7 +197,7 @@ int main() {
         return true;
     });
 
-    registry.Register("bind", [&](const std::vector<std::string>& args){
+    commands.Register("bind", [&](const std::vector<std::string>& args){
         if(args.size() < 3) 
         {
             return false;
@@ -221,7 +221,7 @@ int main() {
 
     auto menu = CreateMenu(appState);
 
-    auto commandDialog = CreateCommandDialog(appState, registry);
+    auto commandDialog = CreateCommandDialog(appState, commands);
 
     auto mainContainer = menu | Modal(commandDialog, &appState.isCommandDialogShown);
 
