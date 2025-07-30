@@ -123,14 +123,16 @@ int main() {
     CommandRegistry registry;
 
     registry.Register("read", [&](const std::vector<std::string>& args) {
-        if(args.size() != 2)
+        if(args.size() != 3)
             return false;
 
-        const std::string& filename = args[1];
+        std::string delimiter = args[1];
+
+        const std::string& filename = args[2];
         if(!fs::is_regular_file(filename))
             return false;
 
-        appState.table = io::read_table(filename);
+        appState.table = io::read_table(filename, delimiter[0]);
         appState.menuEntries = appState.table[0];
         appState.selector = 0; // TODO:
         return true;
