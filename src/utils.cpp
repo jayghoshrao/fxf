@@ -2,6 +2,8 @@
 
 
 #include <ranges>
+#include <memory>
+#include <numeric>
 
 using namespace ftxui;
 
@@ -62,3 +64,52 @@ std::string EventToString(const Event& event) {
     // Return a default string for unknown events
     return "unknown";
 }
+
+std::string ExecAndCapture(const std::string& cmd) {
+    char buffer[128];
+    std::string result = "";
+    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd.c_str(), "r"), pclose);
+
+    if (!pipe) {
+        throw std::runtime_error("popen() failed!");
+    }
+
+    while (fgets(buffer, sizeof buffer, pipe.get()) != nullptr) {
+        result += buffer;
+    }
+
+    return result;
+}
+
+std::string substitute_template(const std::string& template_str, const std::vector<std::string>& data) {
+    std::string result = template_str;
+
+    // Create joined string for {} placeholder
+    std::string joined_data;
+    if (!data.empty()) {
+        joined_data = std::accumulate(data.begin() + 1, data.end(), data[0], 
+            [](const std::string& acc, const std::string& s) {
+                return acc + " | " + s;
+            });
+    }
+
+    // Replace {} with joined data
+    size_t pos = 0;
+    while ((pos = result.find("{}", pos)) != std::string::npos) {
+        result.replace(pos, 2, joined_data);
+        pos += joined_data.length();
+    }
+
+    // Replace numbered placeholders {0}, {1}, {2}, etc.
+    for (size_t i = 0; i < data.size(); ++i) {
+        std::string placeholder = "{" + std::to_string(i) + "}";
+        pos = 0;
+        while ((pos = result.find(placeholder, pos)) != std::string::npos) {
+            result.replace(pos, placeholder.length(), data[i]);
+            pos += data[i].length();
+        }
+    }
+
+    return result;
+}
+

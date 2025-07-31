@@ -13,53 +13,10 @@
 #include "utils.hpp"
 #include "read.hpp"
 #include "command_registry.hpp"
+#include "appstate.hpp"
 
 using namespace ftxui;
 namespace fs = std::filesystem;
-
-struct AppState
-{
-    std::vector<std::string> lines;
-    std::vector<std::string> menuEntries;
-    ScreenInteractive screen = ScreenInteractive::Fullscreen();
-    int selector = 0;
-    bool isCommandDialogShown = false;
-    std::string commandString = "";
-    char delimiter = '|';
-};
-
-std::string substitute_template(const std::string& template_str, const std::vector<std::string>& data) {
-    std::string result = template_str;
-
-    // Create joined string for {} placeholder
-    std::string joined_data;
-    if (!data.empty()) {
-        joined_data = std::accumulate(data.begin() + 1, data.end(), data[0], 
-            [](const std::string& acc, const std::string& s) {
-                return acc + " | " + s;
-            });
-    }
-
-    // Replace {} with joined data
-    size_t pos = 0;
-    while ((pos = result.find("{}", pos)) != std::string::npos) {
-        result.replace(pos, 2, joined_data);
-        pos += joined_data.length();
-    }
-
-    // Replace numbered placeholders {0}, {1}, {2}, etc.
-    for (size_t i = 0; i < data.size(); ++i) {
-        std::string placeholder = "{" + std::to_string(i) + "}";
-        pos = 0;
-        while ((pos = result.find(placeholder, pos)) != std::string::npos) {
-            result.replace(pos, placeholder.length(), data[i]);
-            pos += data[i].length();
-        }
-    }
-
-    return result;
-}
-
 
 class KeybindRegistry {
 public:
@@ -84,25 +41,24 @@ private:
 };
 
 
-
 Component CreateCommandDialog(AppState& appState, const CommandRegistry& registry)
 {
     auto commandInputOption = InputOption::Default();
     commandInputOption.multiline = false;
     commandInputOption.on_enter = [&]{
         appState.screen.Post([&]{
-            registry.Execute(appState.commandString);
-            appState.isCommandDialogShown = false;
-            appState.commandString = "";
+            registry.Execute(appState.commandDialog.string);
+            appState.commandDialog.isShown = false;
+            appState.commandDialog.string = "";
         });
     };
 
-    auto commandInput = Input(&appState.commandString, &appState.commandString, commandInputOption);
+    auto commandInput = Input(&appState.commandDialog.string, &appState.commandDialog.string, commandInputOption);
     commandInput |= CatchEvent([&](Event event){
         if(event == Event::Escape)
         {
-            appState.commandString = "";
-            appState.isCommandDialogShown = false;
+            appState.commandDialog.string = "";
+            appState.commandDialog.isShown = false;
             return true;
         }
         return false;
@@ -148,17 +104,17 @@ Component CreateMenu(AppState& appState)
 
 int main() {
 
-    AppState appState;
+    AppState& appState = GetAppState();
     CommandRegistry commands;
     KeybindRegistry keybinds;
 
     commands.Register("read", [&](const std::vector<std::string>& args) {
-        if(args.size() != 3)
+        if(args.size() != 2)
             return false;
 
-        std::string delimiter = args[1];
+        std::string delimiter = args[0];
 
-        const std::string& filename = args[2];
+        const std::string& filename = args[1];
         if(!fs::is_regular_file(filename))
             return false;
 
@@ -174,7 +130,7 @@ int main() {
     });
 
     commands.Register("view", [&](const std::vector<std::string>& args) {
-        if(args.size() < 2) 
+        if(args.size() < 1) 
         {
             appState.menuEntries = appState.lines;
             return true;
@@ -182,7 +138,7 @@ int main() {
 
         // std::string delimiter = args[1];
         std::string viewTemplate;
-        size_t join_start_idx = 1;
+        size_t join_start_idx = 0;
         for (size_t i = join_start_idx; i < args.size(); ++i) {
             if (i > join_start_idx) viewTemplate += " ";
             viewTemplate += args[i];
@@ -199,14 +155,14 @@ int main() {
     });
 
     commands.Register("bind", [&](const std::vector<std::string>& args){
-        if(args.size() < 3) 
+        if(args.size() < 2) 
         {
             return false;
         }
 
-        std::string key = args[1];
+        std::string key = args[0];
         std::string cmdTemplate;
-        size_t join_start_idx = 2;
+        size_t join_start_idx = 1;
         for (size_t i = join_start_idx; i < args.size(); ++i) {
             if (i > join_start_idx) cmdTemplate += " ";
             cmdTemplate += args[i];
@@ -216,14 +172,20 @@ int main() {
         return true;
     });
 
+    commands.Register("delete", [&](const std::vector<std::string>& args) {
+        appState.lines.erase(appState.lines.begin() + appState.selector); 
+        appState.menuEntries = appState.lines;
+        return true;
+    });
+
     appState.lines = io::read_lines("local_bookmarks_youtube.txt");
     appState.menuEntries = appState.lines;
 
     auto menu = CreateMenu(appState);
     auto commandDialog = CreateCommandDialog(appState, commands);
-    auto mainContainer = menu | Modal(commandDialog, &appState.isCommandDialogShown);
+    auto mainContainer = menu | Modal(commandDialog, &appState.commandDialog.isShown);
     auto mainEventHandler = CatchEvent(mainContainer, [&](Event event){
-        if(appState.isCommandDialogShown)
+        if(appState.commandDialog.isShown)
         {
             return false;
         }
@@ -236,7 +198,7 @@ int main() {
 
         if(event == Event::Character(':'))
         {
-            appState.isCommandDialogShown = true;
+            appState.commandDialog.isShown = true;
             return true;
         }
 
@@ -246,6 +208,8 @@ int main() {
 
     mainContainer->TakeFocus();
     appState.screen.Loop(mainEventHandler);
+
+    std::cout << appState.debug << std::endl;
 
     return EXIT_SUCCESS;
 }

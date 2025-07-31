@@ -13,6 +13,7 @@ struct Table
 
     auto add_line(std::string_view line, char delimiter = ',')
     {
+        // WARNING: Assumes all columns have same length
         for(const auto& [col, token]: std::views::zip(data, line | std::views::split(delimiter)))
         {
             col.emplace_back(&*token.begin(), std::ranges::distance(token));
@@ -27,6 +28,17 @@ struct Table
             result.emplace_back(col[idx]);
         }
         return result;
+    }
+
+    bool erase(size_t idx) {
+        if(idx >= data.size()) {
+            return false;
+        }
+
+        for(auto& col : data){
+            col.erase(col.begin() + idx);
+        }
+        return true;
     }
 
 };
