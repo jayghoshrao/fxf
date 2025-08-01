@@ -28,6 +28,7 @@ private:
 
 
 public:
+    static const Command Null;
 
     Command(CommandFn&& nativeCommandExec) :
         m_nativeCommandExecutor { std::move(nativeCommandExec)} {}

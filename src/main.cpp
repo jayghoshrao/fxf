@@ -151,7 +151,6 @@ int main() {
             cmdTemplate += args[i];
         }
 
-        // TODO: alias commands
         keybinds.Register(key, Command(cmdTemplate, Command::StringToExecutionPolicy(cmdType)));
         return true;
     });
@@ -161,6 +160,24 @@ int main() {
         appState.menuEntries = appState.lines;
         return true;
     });
+
+    commands.Register("command", [&](const std::vector<std::string>& args){
+            if(args.size() < 3) return false;
+
+            std::string name = args[0];
+            std::string cmdType = args[1];
+            std::string cmdTemplate;
+            size_t join_start_idx = 2;
+            for (size_t i = join_start_idx; i < args.size(); ++i) {
+                if (i > join_start_idx) cmdTemplate += " ";
+                cmdTemplate += args[i];
+            }
+
+            commands.Register(name, Command(cmdTemplate, Command::StringToExecutionPolicy(cmdType)));
+            return true;
+            });
+
+    commands.Register("cmd", Command(commands.Get("command")));
 
     appState.lines = io::read_lines("local_bookmarks_youtube.txt");
     appState.menuEntries = appState.lines;

@@ -2,6 +2,9 @@
 #include "registries.hpp"
 #include "appstate.hpp"
 
+/* static */
+const Command Command::Null([](std::vector<std::string>){return false;});
+
 bool Command::Execute(std::string extraArgs /*= ""*/) const {
     std::string command = m_command + ' '  + extraArgs;
 

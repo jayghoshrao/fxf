@@ -33,6 +33,14 @@ class CommandRegistry {
 
         bool Execute(const std::string& line) const;
 
+        const Command& Get(std::string key) { 
+            if(auto it = commands_.find(key); it != commands_.end() )
+            {
+                return it->second;
+            }
+
+            return Command::Null;
+        }
 
     private:
         std::unordered_map<std::string, Command> commands_;
