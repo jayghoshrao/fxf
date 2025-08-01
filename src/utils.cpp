@@ -113,3 +113,11 @@ std::string substitute_template(const std::string& template_str, const std::vect
     return result;
 }
 
+
+std::string trim(const std::string& str) {
+    const auto first = str.find_first_not_of(" \t\n\r\f\v");
+    if (first == std::string::npos)
+        return ""; // all whitespace
+    const auto last = str.find_last_not_of(" \t\n\r\f\v");
+    return str.substr(first, (last - first + 1));
+}

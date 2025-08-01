@@ -4,6 +4,11 @@
 
 struct AppState
 {
+    static AppState& Instance() {
+        static AppState instance;
+        return instance;
+    }
+
     struct Modal {
         std::string string = "";
         bool isShown = false;
@@ -22,9 +27,3 @@ struct AppState
 
     std::string debug = "";
 };
-
-AppState& GetAppState()
-{
-    static AppState instance;
-    return instance;
-}

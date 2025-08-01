@@ -26,7 +26,7 @@ FetchContent_Declare(ftxui
 FetchContent_MakeAvailable(ftxui)
 # ------------------------------------------------------------------------------
 
-add_executable(lazyviewer src/utils.cpp src/read.cpp src/main.cpp)
+add_executable(lazyviewer src/utils.cpp src/read.cpp src/command.cpp src/registries.cpp src/main.cpp)
 target_include_directories(lazyviewer PRIVATE src)
 
 target_link_libraries(lazyviewer

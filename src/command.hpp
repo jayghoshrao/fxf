@@ -1,0 +1,46 @@
+#pragma once
+#include <string>
+#include <unordered_map>
+#include <functional>
+#include <vector>
+#include <iostream>
+#include <sstream>
+
+#include "appstate.hpp"
+#include "utils.hpp"
+
+
+class Command {
+    using CommandFn = std::function<bool(const std::vector<std::string>&)>;
+
+public:
+    enum class ExecutionPolicy {
+        Silent,
+        Modal,
+        Alias
+    };
+
+
+private:
+    ExecutionPolicy m_execPolicy;
+    CommandFn m_nativeCommandExecutor;
+    std::string m_command;
+
+
+public:
+
+    Command(CommandFn&& nativeCommandExec) :
+        m_nativeCommandExecutor { std::move(nativeCommandExec)} {}
+
+    Command(std::string command, ExecutionPolicy execPolicy) :
+        m_command(command), 
+        m_execPolicy(execPolicy) 
+    {
+    }
+
+    bool Execute(std::string extraArgs = "") const;
+
+    static Command::ExecutionPolicy StringToExecutionPolicy(std::string strPolicy);
+};
+
+

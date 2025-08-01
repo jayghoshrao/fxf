@@ -12,42 +12,23 @@
 
 #include "utils.hpp"
 #include "read.hpp"
-#include "command_registry.hpp"
+#include "registries.hpp"
 #include "appstate.hpp"
+#include "command.hpp"
 
 using namespace ftxui;
 namespace fs = std::filesystem;
 
-class KeybindRegistry {
-public:
-    void Register(std::string event, std::string_view command) {
-        map_[event] = command;
-    }
 
-    bool Execute(std::string key, AppState& appState) const {
-        if(auto it = map_.find(key); it != map_.end())
-        {
-            auto currentSplit = split_csv_line(appState.lines[appState.selector], appState.delimiter);
-            auto command = substitute_template(it->second, currentSplit);
-
-            std::system(command.c_str());
-            return true;
-        }
-        return false;
-    }
-
-private:
-    std::map<std::string, std::string> map_;
-};
-
-
-Component CreateCommandDialog(AppState& appState, const CommandRegistry& registry)
+Component CreateCommandDialog()
 {
+    AppState& appState = AppState::Instance();
+    CommandRegistry& commands = CommandRegistry::Instance();
     auto commandInputOption = InputOption::Default();
     commandInputOption.multiline = false;
     commandInputOption.on_enter = [&]{
         appState.screen.Post([&]{
-            registry.Execute(appState.commandDialog.string);
+            commands.Execute(appState.commandDialog.string);
             appState.commandDialog.isShown = false;
             appState.commandDialog.string = "";
         });
@@ -104,9 +85,10 @@ Component CreateMenu(AppState& appState)
 
 int main() {
 
-    AppState& appState = GetAppState();
-    CommandRegistry commands;
-    KeybindRegistry keybinds;
+    AppState& appState = AppState::Instance();
+    CommandRegistry& commands = CommandRegistry::Instance();
+    // KeybindRegistry& keybinds = KeybindRegistry::Instance();
+    KeybindRegistry keybinds; 
 
     commands.Register("read", [&](const std::vector<std::string>& args) {
         if(args.size() != 2)
@@ -155,20 +137,22 @@ int main() {
     });
 
     commands.Register("bind", [&](const std::vector<std::string>& args){
-        if(args.size() < 2) 
+        if(args.size() < 3) 
         {
             return false;
         }
 
         std::string key = args[0];
+        std::string cmdType = args[1];
         std::string cmdTemplate;
-        size_t join_start_idx = 1;
+        size_t join_start_idx = 2;
         for (size_t i = join_start_idx; i < args.size(); ++i) {
             if (i > join_start_idx) cmdTemplate += " ";
             cmdTemplate += args[i];
         }
 
-        keybinds.Register(key, cmdTemplate);
+        // TODO: alias commands
+        keybinds.Register(key, Command(cmdTemplate, Command::StringToExecutionPolicy(cmdType)));
         return true;
     });
 
@@ -182,7 +166,7 @@ int main() {
     appState.menuEntries = appState.lines;
 
     auto menu = CreateMenu(appState);
-    auto commandDialog = CreateCommandDialog(appState, commands);
+    auto commandDialog = CreateCommandDialog();
     auto mainContainer = menu | Modal(commandDialog, &appState.commandDialog.isShown);
     auto mainEventHandler = CatchEvent(mainContainer, [&](Event event){
         if(appState.commandDialog.isShown)
@@ -202,7 +186,7 @@ int main() {
             return true;
         }
 
-        return keybinds.Execute(EventToString(event), appState);
+        return keybinds.Execute(EventToString(event));
     });
 
 

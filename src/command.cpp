@@ -1,0 +1,58 @@
+#include "command.hpp"
+#include "registries.hpp"
+#include "appstate.hpp"
+
+bool Command::Execute(std::string extraArgs /*= ""*/) const {
+    std::string command = m_command + ' '  + extraArgs;
+
+    auto& appState = AppState::Instance();
+    auto selected_line_split = split_csv_line(appState.lines[appState.selector], appState.delimiter);
+    auto commandstr = substitute_template(command, selected_line_split);
+
+    if(m_nativeCommandExecutor)
+    {
+        std::istringstream iss(command);
+        std::string cmd;
+        std::vector<std::string> args;
+
+        while(iss >> cmd)
+        {
+            args.push_back(cmd);
+        }
+        return m_nativeCommandExecutor(args);
+    }
+
+    // native commands do not have/need an execPolicy.
+    switch(m_execPolicy)
+    {
+        case ExecutionPolicy::Alias:
+            return CommandRegistry::Instance().Execute(commandstr);
+            break;
+        case ExecutionPolicy::Silent:
+            {
+                int err = std::system(commandstr.c_str());
+                return err == 0 ? true : false;
+                break;
+            }
+        case ExecutionPolicy::Modal:
+            appState.display.string = ExecAndCapture(commandstr.c_str());
+            appState.display.isShown = true;
+            return true;
+            break;
+        default:
+            break;
+    }
+    return false;
+}
+
+/* static */ 
+Command::ExecutionPolicy Command::StringToExecutionPolicy(std::string strPolicy)
+{
+    auto strPolicyTrimmed = trim(strPolicy);
+
+    if(strPolicyTrimmed == "alias") return Command::ExecutionPolicy::Alias;
+    if(strPolicyTrimmed == "silent") return Command::ExecutionPolicy::Silent;
+    if(strPolicyTrimmed == "modal") return Command::ExecutionPolicy::Modal;
+
+    return Command::ExecutionPolicy::Alias;
+}
