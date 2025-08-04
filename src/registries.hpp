@@ -48,6 +48,20 @@ class CommandRegistry {
 
 class KeybindRegistry {
 public:
+
+        static KeybindRegistry& Instance()
+        {
+            static KeybindRegistry instance;
+            return instance;
+        }
+
+        KeybindRegistry() = default;
+        KeybindRegistry(const KeybindRegistry&) = delete;
+        KeybindRegistry& operator=(const KeybindRegistry&) = delete;
+        KeybindRegistry(KeybindRegistry&&) = delete;
+        KeybindRegistry& operator=(KeybindRegistry&&) = delete;
+
+
     void Register(std::string event, Command&& command) {
         map_.emplace(event, command);
     }
