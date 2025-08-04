@@ -1,5 +1,7 @@
 #include <iostream>
 
+#include <CLI/CLI.hpp>
+
 #include "components.hpp"
 #include "utils.hpp"
 #include "read.hpp"
@@ -9,13 +11,21 @@
 
 using namespace ftxui;
 
-int main() {
+int main(int argc, char* argv[]) {
 
     AppState& appState = AppState::Instance();
     CommandRegistry::RegisterDefaultCommands();
     KeybindRegistry& keybinds = KeybindRegistry::Instance();
 
-    appState.lines = io::read_lines("local_bookmarks_youtube.txt");
+    CLI::App args{"args"};
+
+    std::string filename;
+    args.add_option("file", filename, "file to read");
+    args.add_option("-d,--delimiter", appState.delimiter, "Delimiter");
+
+    CLI11_PARSE(args, argc, argv);
+
+    appState.lines = io::read_lines(filename);
     appState.menuEntries = appState.lines;
 
     auto menu = gui::CreateMenu();

@@ -24,6 +24,20 @@ FetchContent_Declare(ftxui
   EXCLUDE_FROM_ALL
 )
 FetchContent_MakeAvailable(ftxui)
+
+# ------------------------------------------------------------------------------
+# --- Fetch CLI11 --------------------------------------------------------------
+
+include(FetchContent)
+
+FetchContent_Declare(
+    cli11_proj
+    QUIET
+    GIT_REPOSITORY https://github.com/CLIUtils/CLI11.git
+    GIT_TAG v2.5.0
+)
+FetchContent_MakeAvailable(cli11_proj)
+
 # ------------------------------------------------------------------------------
 
 add_executable(lazyviewer src/utils.cpp src/read.cpp src/command.cpp src/registries.cpp src/components.cpp src/main.cpp)
@@ -32,7 +46,8 @@ target_include_directories(lazyviewer PRIVATE src)
 target_link_libraries(lazyviewer
   PRIVATE ftxui::screen
   PRIVATE ftxui::dom
-  PRIVATE ftxui::component  # Not needed for this example.
+  PRIVATE ftxui::component
+  PRIVATE CLI11::CLI11
 )
 
 if (EMSCRIPTEN)
