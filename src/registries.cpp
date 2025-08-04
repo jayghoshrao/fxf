@@ -56,7 +56,6 @@ void CommandRegistry::RegisterDefaultCommands()
             return true;
         }
 
-        // std::string delimiter = args[1];
         std::string viewTemplate;
         size_t join_start_idx = 0;
         for (size_t i = join_start_idx; i < args.size(); ++i) {
