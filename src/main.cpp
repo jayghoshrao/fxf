@@ -1,14 +1,4 @@
 #include <iostream>
-#include <filesystem>
-#include <numeric>
-#include <cstdlib>
-#include <map>
-
-#include <ftxui/dom/elements.hpp>
-#include <ftxui/component/component.hpp>
-#include <ftxui/component/component_base.hpp>
-#include <ftxui/component/screen_interactive.hpp>
-#include <ftxui/screen/string.hpp>
 
 #include "components.hpp"
 #include "utils.hpp"
