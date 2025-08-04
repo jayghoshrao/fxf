@@ -11,4 +11,3 @@ std::string ExecAndCapture(const std::string& cmd);
 std::string substitute_template(const std::string& template_str, const std::vector<std::string>& data);
 std::string trim(const std::string& str);
 
-void RegisterDefaultCommands();

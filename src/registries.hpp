@@ -16,6 +16,8 @@ class CommandRegistry {
             return instance;
         }
 
+        static void RegisterDefaultCommands();
+
         CommandRegistry() = default;
         CommandRegistry(const CommandRegistry&) = delete;
         CommandRegistry& operator=(const CommandRegistry&) = delete;
@@ -71,4 +73,5 @@ public:
 private:
     std::map<std::string, Command> map_;
 };
+
 

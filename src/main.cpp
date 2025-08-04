@@ -4,7 +4,6 @@
 #include <cstdlib>
 #include <map>
 
-
 #include <ftxui/dom/elements.hpp>
 #include <ftxui/component/component.hpp>
 #include <ftxui/component/component_base.hpp>
@@ -20,14 +19,11 @@
 
 using namespace ftxui;
 
-
-
 int main() {
 
     AppState& appState = AppState::Instance();
+    CommandRegistry::RegisterDefaultCommands();
     KeybindRegistry& keybinds = KeybindRegistry::Instance();
-
-    RegisterDefaultCommands();
 
     appState.lines = io::read_lines("local_bookmarks_youtube.txt");
     appState.menuEntries = appState.lines;
