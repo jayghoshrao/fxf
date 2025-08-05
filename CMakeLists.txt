@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 3.22)
 
-project(lazyviewer
+project(fxf
   LANGUAGES CXX
   VERSION 1.0.0
 )
@@ -40,10 +40,10 @@ FetchContent_MakeAvailable(cli11_proj)
 
 # ------------------------------------------------------------------------------
 
-add_executable(lazyviewer src/utils.cpp src/read.cpp src/command.cpp src/registries.cpp src/components.cpp src/main.cpp)
-target_include_directories(lazyviewer PRIVATE src)
+add_executable(fxf src/utils.cpp src/read.cpp src/command.cpp src/registries.cpp src/components.cpp src/main.cpp)
+target_include_directories(fxf PRIVATE src)
 
-target_link_libraries(lazyviewer
+target_link_libraries(fxf
   PRIVATE ftxui::screen
   PRIVATE ftxui::dom
   PRIVATE ftxui::component
