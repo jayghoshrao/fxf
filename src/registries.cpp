@@ -11,10 +11,10 @@ bool CommandRegistry::Execute(const std::string& line) const {
     iss >> cmd;
     if(auto it = commands_.find(cmd); it != commands_.end())
     {
-        auto args = line 
-            | std::views::split(' ') 
-            | std::views::drop(1) 
-            | std::views::join_with(' ') 
+        auto args = line
+            | std::views::split(' ')
+            | std::views::drop(1)
+            | std::views::join_with(' ')
             | std::ranges::to<std::string>();
 
         return it->second.Execute(args);
@@ -44,13 +44,13 @@ void CommandRegistry::RegisterDefaultCommands()
         return true;
     });
 
-    commands.Register("quit", [&](const std::vector<std::string>&) {
+    commands.Register("quit", [&](const std::vector<std::string>& args) {
         appState.screen.ExitLoopClosure()();
         return true;
     });
 
     commands.Register("view", [&](const std::vector<std::string>& args) {
-        if(args.size() < 1) 
+        if(args.size() < 1)
         {
             appState.menuEntries = appState.lines;
             return true;
@@ -74,7 +74,7 @@ void CommandRegistry::RegisterDefaultCommands()
     });
 
     commands.Register("bind", [&](const std::vector<std::string>& args){
-        if(args.size() < 3) 
+        if(args.size() < 3)
         {
             return false;
         }
@@ -88,12 +88,13 @@ void CommandRegistry::RegisterDefaultCommands()
             cmdTemplate += args[i];
         }
 
-        keybinds.Register(key, Command(cmdTemplate, Command::StringToExecutionPolicy(cmdType)));
+        // keybinds.Register(key, Command(cmdTemplate, Command::StringToExecutionPolicy(cmdType)));
+        keybinds.Register(ftxui::Event::Character(key[0]), Command(cmdTemplate, Command::StringToExecutionPolicy(cmdType)));
         return true;
     });
 
     commands.Register("delete", [&](const std::vector<std::string>& args) {
-        appState.lines.erase(appState.lines.begin() + appState.selector); 
+        appState.lines.erase(appState.lines.begin() + appState.selector);
         appState.menuEntries = appState.lines;
         return true;
     });
@@ -118,11 +119,29 @@ void CommandRegistry::RegisterDefaultCommands()
 
 }
 
-bool KeybindRegistry::Execute(std::string key) const{
-    if(auto it = map_.find(key); it != map_.end())
+// bool KeybindRegistry::Execute(std::string key) const{
+bool KeybindRegistry::Execute(ftxui::Event event) const{
+    if(auto it = map_.find(event); it != map_.end())
     {
-        it->second.Execute();
-        return true;
+        return it->second.Execute();
     }
     return false;
+}
+
+/*static*/ void KeybindRegistry::RegisterDefaultKeybinds()
+{
+    KeybindRegistry& keybinds = KeybindRegistry::Instance();
+    keybinds.Register(
+        ftxui::Event::q,
+        Command("quit", Command::ExecutionPolicy::Alias)
+    );
+
+    keybinds.Register(
+            ftxui::Event::Character(':'),
+            Command([&](const std::vector<std::string>&){
+                AppState& appState = AppState::Instance();
+                appState.commandDialog.isShown = true;
+                return true;
+                })
+            );
 }

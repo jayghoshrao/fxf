@@ -9,6 +9,8 @@ bool Command::Execute(std::string extraArgs /*= ""*/) const {
     std::string command = m_command + ' '  + extraArgs;
 
     auto& appState = AppState::Instance();
+
+    // TODO: Fix appState.lines bad access
     auto selected_line_split = split_csv_line(appState.lines[appState.selector], appState.delimiter);
     auto commandstr = substitute_template(command, selected_line_split);
 
@@ -29,26 +31,27 @@ bool Command::Execute(std::string extraArgs /*= ""*/) const {
     switch(m_execPolicy)
     {
         case ExecutionPolicy::Alias:
-            return CommandRegistry::Instance().Execute(commandstr);
-            break;
+            {
+                return CommandRegistry::Instance().Execute(commandstr);
+            }
         case ExecutionPolicy::Silent:
             {
                 int err = std::system(commandstr.c_str());
                 return err == 0 ? true : false;
-                break;
             }
         case ExecutionPolicy::Modal:
-            appState.display.string = ExecAndCapture(commandstr.c_str());
-            appState.display.isShown = true;
-            return true;
-            break;
+            {
+                appState.display.string = ExecAndCapture(commandstr.c_str());
+                appState.display.isShown = true;
+                return true;
+            }
         default:
             break;
     }
     return false;
 }
 
-/* static */ 
+/* static */
 Command::ExecutionPolicy Command::StringToExecutionPolicy(std::string strPolicy)
 {
     auto strPolicyTrimmed = trim(strPolicy);

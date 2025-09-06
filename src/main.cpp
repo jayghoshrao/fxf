@@ -16,6 +16,7 @@ int main(int argc, char* argv[]) {
     AppState& appState = AppState::Instance();
     CommandRegistry::RegisterDefaultCommands();
     KeybindRegistry& keybinds = KeybindRegistry::Instance();
+    KeybindRegistry::RegisterDefaultKeybinds();
 
     CLI::App args{"args"};
 
@@ -37,19 +38,7 @@ int main(int argc, char* argv[]) {
             return false;
         }
 
-        if(event == Event::Character('q'))
-        {
-            appState.screen.ExitLoopClosure()();
-            return true;
-        }
-
-        if(event == Event::Character(':'))
-        {
-            appState.commandDialog.isShown = true;
-            return true;
-        }
-
-        return keybinds.Execute(EventToString(event));
+        return keybinds.Execute(event);
     });
 
 

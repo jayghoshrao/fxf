@@ -35,7 +35,7 @@ class CommandRegistry {
 
         bool Execute(const std::string& line) const;
 
-        const Command& Get(std::string key) { 
+        const Command& Get(std::string key) {
             if(auto it = commands_.find(key); it != commands_.end() )
             {
                 return it->second;
@@ -64,14 +64,21 @@ public:
         KeybindRegistry& operator=(KeybindRegistry&&) = delete;
 
 
-    void Register(std::string event, Command&& command) {
+    // void Register(std::string event, Command&& command) {
+    //     map_.emplace(event, command);
+    // }
+
+    void Register(ftxui::Event event, Command&& command) {
         map_.emplace(event, command);
     }
 
-    bool Execute(std::string key) const;
+    // bool Execute(std::string key) const;
+    bool Execute(ftxui::Event event) const;
+
+    static void RegisterDefaultKeybinds();
 
 private:
-    std::map<std::string, Command> map_;
+    std::map<ftxui::Event, Command> map_;
 };
 
 
