@@ -52,6 +52,7 @@ private:
         ftxui::Component mainContainer{nullptr};
         ftxui::Component commandDialog{nullptr};
         ftxui::Component mainEventHandler{nullptr};
+        ftxui::Component searchInput{nullptr};
     } components;
 
     ftxui::Component CreateMenu();

@@ -81,7 +81,7 @@ void App::FocusSearch()
 {
     controls.commandDialog.isActive = false;
     controls.searchDialog.isActive = true;
-    components.statusBar->TakeFocus();
+    components.searchInput->TakeFocus();
 }
 
 Component App::CreateCommandDialog()
@@ -160,7 +160,14 @@ Component App::CreateStatusBar()
         return false;
     });
 
-    return searchInput | size(HEIGHT, EQUAL,1);
+    auto prompt_icon = Renderer([&]{
+        return text("> ");
+    });
+
+    auto barTabs = Container::Horizontal({prompt_icon, searchInput});
+
+    components.searchInput = searchInput;
+    return barTabs | size(HEIGHT, EQUAL,1);
 }
 
 void App::ApplyViewTemplate(std::string_view viewTemplate)
