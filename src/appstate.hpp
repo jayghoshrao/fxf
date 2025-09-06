@@ -31,6 +31,8 @@ class App
         void Load(const std::string& filename);
         void CreateGUI();
         void Loop();
+        void ResetFocus();
+        void FocusSearch();
 
     private:
         struct ComponentChildren {

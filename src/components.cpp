@@ -4,95 +4,95 @@
 
 namespace gui{
 
-    using namespace ftxui;
+// TODO: Move to App?
+using namespace ftxui;
 
-    Component CreateCommandDialog()
-    {
-        App& app = App::Instance();
-        CommandRegistry& commands = CommandRegistry::Instance();
-        auto commandInputOption = InputOption::Default();
-        commandInputOption.multiline = false;
-        commandInputOption.on_enter = [&]{
-            app.controls.screen.Post([&]{
-                    commands.Execute(app.controls.commandDialog.string);
-                    app.controls.commandDialog.isActive = false;
-                    app.controls.commandDialog.string = "";
-                    });
-        };
+Component CreateCommandDialog()
+{
+    App& app = App::Instance();
+    CommandRegistry& commands = CommandRegistry::Instance();
+    auto commandInputOption = InputOption::Default();
+    commandInputOption.multiline = false;
+    commandInputOption.on_enter = [&]{
+        app.controls.screen.Post([&]{
+            commands.Execute(app.controls.commandDialog.string);
+            app.controls.commandDialog.isActive = false;
+            app.controls.commandDialog.string = "";
+        });
+    };
 
-        auto commandInput = Input(&app.controls.commandDialog.string, &app.controls.commandDialog.string, commandInputOption);
-        commandInput |= CatchEvent([&](Event event){
-                if(event == Event::Escape)
-                {
-                app.controls.commandDialog.string = "";
-                app.controls.commandDialog.isActive = false;
-                return true;
-                }
-                return false;
-                });
-        return Renderer(commandInput, [=]{ return
-                commandInput->Render() | size(WIDTH, EQUAL, Terminal::Size().dimx * 0.5)
-                ;}) | border ;
-    }
+    auto commandInput = Input(&app.controls.commandDialog.string, &app.controls.commandDialog.string, commandInputOption);
+    commandInput |= CatchEvent([&](Event event){
+        if(event == Event::Escape)
+        {
+            app.controls.commandDialog.string = "";
+            app.controls.commandDialog.isActive = false;
+            return true;
+        }
+        return false;
+    });
+    return Renderer(commandInput, [=]{ return
+        commandInput->Render() | size(WIDTH, EQUAL, Terminal::Size().dimx * 0.5)
+        ;}) | border ;
+}
 
-    Component CreateMenu()
-    {
-        App& app = App::Instance();
-        auto menuOption = MenuOption();
-        auto menu = Menu(&app.controls.menuEntries, &app.controls.selector, menuOption)
-            | vscroll_indicator | frame | border;
+Component CreateMenu()
+{
+    App& app = App::Instance();
+    auto menuOption = MenuOption();
+    auto menu = Menu(&app.controls.menuEntries, &app.controls.selector, menuOption)
+        | vscroll_indicator | frame | border;
 
-        menu |= CatchEvent([&](Event event){
-                if(event == Event::Character('G'))
-                {
-                menu->OnEvent(Event::End);
-                return true;
-                }
-                static bool got_g = false;
+    menu |= CatchEvent([&](Event event){
+        if(event == Event::Character('G'))
+        {
+            menu->OnEvent(Event::End);
+            return true;
+        }
+        static bool got_g = false;
 
-                if(event == Event::Character('g')) {
-                if(got_g) {
+        if(event == Event::Character('g')) {
+            if(got_g) {
                 got_g = false;
                 menu->OnEvent(Event::Home);
                 return true;
-                } else {
+            } else {
                 got_g = true;
                 return true;
-                }
-                }
+            }
+        }
 
-                got_g = false;
-                return false;
-        });
+        got_g = false;
+        return false;
+    });
 
-        return menu;
-    }
+    return menu;
+}
 
-    Component CreateStatusBar()
-    {
-        App& app = App::Instance();
-        auto searchInputOption = InputOption::Default();
-        searchInputOption.multiline = false;
-        // searchInputOption.on_enter = [&]{
-        //     app.controls.screen.Post([&]{
-        //             // TODO: apply search, modify menuEntries, shift focus
-        //             });
-        // };
+Component CreateStatusBar()
+{
+    App& app = App::Instance();
+    auto searchInputOption = InputOption::Default();
+    searchInputOption.multiline = false;
 
-        auto searchInput = Input(&app.controls.searchDialog.string, &app.controls.searchDialog.string, searchInputOption) ;
-        searchInput |= CatchEvent([&](Event event){
-                if(event == Event::Escape)
-                {
-                app.controls.searchDialog.string = "";
-                app.controls.searchDialog.isActive = false;
-                // TODO: app.controls.ResetFocus()
-                return true;
-                }
-                return false;
-                });
+    // searchInputOption.on_enter = [&]{
+    //     app.controls.screen.Post([&]{
+    //             // TODO: apply search, modify menuEntries, shift focus
+    //             });
+    // };
 
-        return searchInput | size(HEIGHT, EQUAL,1);
+    auto searchInput = Input(&app.controls.searchDialog.string, &app.controls.searchDialog.string, searchInputOption) ;
+    searchInput |= CatchEvent([&](Event event){
+        if(event == Event::Escape)
+        {
+            app.controls.searchDialog.string = "";
+            app.ResetFocus();
+            return true;
+        }
+        return false;
+    });
 
-    }
+    return searchInput | size(HEIGHT, EQUAL,1);
+}
 
 }

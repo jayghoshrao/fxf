@@ -42,3 +42,17 @@ void App::Loop()
     components.menu->TakeFocus();
     controls.screen.Loop(components.mainEventHandler);
 }
+
+void App::ResetFocus()
+{
+    controls.commandDialog.isActive = false;
+    controls.searchDialog.isActive = false;
+    components.menu->TakeFocus();
+}
+
+void App::FocusSearch()
+{
+    controls.commandDialog.isActive = false;
+    controls.searchDialog.isActive = true;
+    components.statusBar->TakeFocus();
+}
