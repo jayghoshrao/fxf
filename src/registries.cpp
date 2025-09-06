@@ -148,6 +148,7 @@ bool KeybindRegistry::Execute(ftxui::Event event) const{
             ftxui::Event::Character('/'),
             Command([&](const std::vector<std::string>&){
                 App& app = App::Instance();
+                app.cache.menuEntries = app.controls.menuEntries;
                 app.FocusSearch();
                 return true;
                 })

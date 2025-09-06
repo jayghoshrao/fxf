@@ -122,10 +122,15 @@ Component App::CreateStatusBar()
 {
     auto searchInputOption = InputOption::Default();
     searchInputOption.multiline = false;
-
     searchInputOption.on_enter = [&]{
         controls.screen.Post([&]{
-            auto fuzzyResults = extract(controls.searchDialog.string, controls.menuEntries, 0.0);
+            this->ResetFocus();
+        });
+    };
+
+    searchInputOption.on_change = [&]{
+        controls.screen.Post([&]{
+            auto fuzzyResults = extract(controls.searchDialog.string, cache.menuEntries, 0.0);
             std::ranges::sort(fuzzyResults, std::ranges::greater{}, &std::pair<std::string, double>::second);
 
             controls.menuEntries.clear();
@@ -133,9 +138,9 @@ Component App::CreateStatusBar()
             {
                 controls.menuEntries.emplace_back(item.first);
             }
-            this->ResetFocus();
         });
     };
+
 
     auto searchInput = Input(&controls.searchDialog.string, &controls.searchDialog.string, searchInputOption) ;
     searchInput |= CatchEvent([&](Event event){
