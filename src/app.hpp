@@ -43,4 +43,8 @@ class App
             ftxui::Component commandDialog{nullptr};
             ftxui::Component mainEventHandler{nullptr};
         } components;
+
+        ftxui::Component CreateMenu();
+        ftxui::Component CreateStatusBar();
+        ftxui::Component CreateCommandDialog();
 };

@@ -119,7 +119,6 @@ void CommandRegistry::RegisterDefaultCommands()
 
 }
 
-// bool KeybindRegistry::Execute(std::string key) const{
 bool KeybindRegistry::Execute(ftxui::Event event) const{
     if(auto it = map_.find(event); it != map_.end())
     {

@@ -45,7 +45,7 @@ FetchContent_MakeAvailable(rapidfuzz)
 
 # ------------------------------------------------------------------------------
 
-add_executable(fxf src/utils.cpp src/read.cpp src/command.cpp src/registries.cpp src/components.cpp src/app.cpp src/main.cpp)
+add_executable(fxf src/utils.cpp src/read.cpp src/command.cpp src/registries.cpp src/app.cpp src/main.cpp)
 target_include_directories(fxf PRIVATE src)
 
 target_link_libraries(fxf

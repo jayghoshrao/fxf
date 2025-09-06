@@ -1,7 +1,8 @@
 #include "app.hpp"
-#include "components.hpp"
 #include "registries.hpp"
 #include "read.hpp"
+
+#include <ftxui/component/component.hpp>
 
 using namespace ftxui;
 
@@ -13,7 +14,7 @@ void App::Load(const std::string& filename)
 
 void App::CreateGUI()
 {
-    components.menu = gui::CreateMenu();
+    components.menu = this->CreateMenu();
     components.menu |= CatchEvent([&](Event event){
         if(event == Event::Character('G'))
         {
@@ -37,12 +38,12 @@ void App::CreateGUI()
         return false;
     });
 
-    components.statusBar = gui::CreateStatusBar();
+    components.statusBar = this->CreateStatusBar();
     components.baseContainer = Container::Vertical({
             components.statusBar,
             components.menu,
             });
-    components.commandDialog = gui::CreateCommandDialog();
+    components.commandDialog = this->CreateCommandDialog();
 
     components.mainContainer = components.baseContainer | Modal(components.commandDialog, &controls.commandDialog.isActive);
 
@@ -79,3 +80,65 @@ void App::FocusSearch()
     controls.searchDialog.isActive = true;
     components.statusBar->TakeFocus();
 }
+
+Component App::CreateCommandDialog()
+{
+    CommandRegistry& commands = CommandRegistry::Instance();
+    auto commandInputOption = InputOption::Default();
+    commandInputOption.multiline = false;
+    commandInputOption.on_enter = [&]{
+        controls.screen.Post([&]{
+            commands.Execute(controls.commandDialog.string);
+            controls.commandDialog.isActive = false;
+            controls.commandDialog.string = "";
+        });
+    };
+
+    auto commandInput = Input(&controls.commandDialog.string, &controls.commandDialog.string, commandInputOption);
+    commandInput |= CatchEvent([&](Event event){
+        if(event == Event::Escape)
+        {
+            controls.commandDialog.string = "";
+            controls.commandDialog.isActive = false;
+            return true;
+        }
+        return false;
+    });
+    return Renderer(commandInput, [=]{ return
+        commandInput->Render() | size(WIDTH, EQUAL, Terminal::Size().dimx * 0.5)
+        ;}) | border ;
+}
+
+Component App::CreateMenu()
+{
+    auto menuOption = MenuOption();
+    auto menu = Menu(&controls.menuEntries, &controls.selector, menuOption)
+        | vscroll_indicator | frame | border;
+    return menu;
+}
+
+Component App::CreateStatusBar()
+{
+    auto searchInputOption = InputOption::Default();
+    searchInputOption.multiline = false;
+
+    // searchInputOption.on_enter = [&]{
+    //     controls.screen.Post([&]{
+    //             // TODO: apply search, modify menuEntries, shift focus
+    //             });
+    // };
+
+    auto searchInput = Input(&controls.searchDialog.string, &controls.searchDialog.string, searchInputOption) ;
+    searchInput |= CatchEvent([&](Event event){
+        if(event == Event::Escape)
+        {
+            controls.searchDialog.string = "";
+            ResetFocus();
+            return true;
+        }
+        return false;
+    });
+
+    return searchInput | size(HEIGHT, EQUAL,1);
+}
+
