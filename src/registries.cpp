@@ -5,7 +5,7 @@
 #include <filesystem>
 
 bool CommandRegistry::Execute(const std::string& line) const {
-    AppState& appState = AppState::Instance();
+    App& app = App::Instance();
     std::istringstream iss(line);
     std::string cmd;
     iss >> cmd;
@@ -24,7 +24,7 @@ bool CommandRegistry::Execute(const std::string& line) const {
 
 void CommandRegistry::RegisterDefaultCommands()
 {
-    AppState& appState = AppState::Instance();
+    App& app = App::Instance();
     CommandRegistry& commands = CommandRegistry::Instance();
     KeybindRegistry& keybinds = KeybindRegistry::Instance();
 
@@ -38,21 +38,21 @@ void CommandRegistry::RegisterDefaultCommands()
         if(!std::filesystem::is_regular_file(filename))
             return false;
 
-        appState.lines = io::read_lines(filename);
-        appState.menuEntries = appState.lines;
-        appState.selector = 0; // TODO:
+        app.lines = io::read_lines(filename);
+        app.menuEntries = app.lines;
+        app.selector = 0; // TODO:
         return true;
     });
 
     commands.Register("quit", [&](const std::vector<std::string>& args) {
-        appState.screen.ExitLoopClosure()();
+        app.screen.ExitLoopClosure()();
         return true;
     });
 
     commands.Register("view", [&](const std::vector<std::string>& args) {
         if(args.size() < 1)
         {
-            appState.menuEntries = appState.lines;
+            app.menuEntries = app.lines;
             return true;
         }
 
@@ -64,9 +64,9 @@ void CommandRegistry::RegisterDefaultCommands()
         }
 
         size_t i=0;
-        for(std::string& ref : appState.menuEntries)
+        for(std::string& ref : app.menuEntries)
         {
-            auto currentSplit = split_csv_line(appState.lines[i++], appState.delimiter);
+            auto currentSplit = split_csv_line(app.lines[i++], app.delimiter);
             ref = substitute_template(viewTemplate, currentSplit);
         }
 
@@ -94,8 +94,8 @@ void CommandRegistry::RegisterDefaultCommands()
     });
 
     commands.Register("delete", [&](const std::vector<std::string>& args) {
-        appState.lines.erase(appState.lines.begin() + appState.selector);
-        appState.menuEntries = appState.lines;
+        app.lines.erase(app.lines.begin() + app.selector);
+        app.menuEntries = app.lines;
         return true;
     });
 
@@ -139,8 +139,8 @@ bool KeybindRegistry::Execute(ftxui::Event event) const{
     keybinds.Register(
             ftxui::Event::Character(':'),
             Command([&](const std::vector<std::string>&){
-                AppState& appState = AppState::Instance();
-                appState.commandDialog.isActive = true;
+                App& app = App::Instance();
+                app.commandDialog.isActive = true;
                 return true;
                 })
             );
@@ -148,8 +148,8 @@ bool KeybindRegistry::Execute(ftxui::Event event) const{
     keybinds.Register(
             ftxui::Event::Character('/'),
             Command([&](const std::vector<std::string>&){
-                AppState& appState = AppState::Instance();
-                appState.searchDialog.isActive = true;
+                App& app = App::Instance();
+                app.searchDialog.isActive = true;
                 return true;
                 })
             );

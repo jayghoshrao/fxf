@@ -14,7 +14,7 @@ using namespace ftxui;
 
 int main(int argc, char* argv[]) {
 
-    AppState& appState = AppState::Instance();
+    App& app = App::Instance();
     CommandRegistry::RegisterDefaultCommands();
     KeybindRegistry& keybinds = KeybindRegistry::Instance();
     KeybindRegistry::RegisterDefaultKeybinds();
@@ -23,12 +23,12 @@ int main(int argc, char* argv[]) {
 
     std::string filename;
     args.add_option("file", filename, "file to read");
-    args.add_option("-d,--delimiter", appState.delimiter, "Delimiter");
+    args.add_option("-d,--delimiter", app.delimiter, "Delimiter");
 
     CLI11_PARSE(args, argc, argv);
 
-    appState.lines = io::read_lines(filename);
-    appState.menuEntries = appState.lines;
+    app.lines = io::read_lines(filename);
+    app.menuEntries = app.lines;
 
     auto menu = gui::CreateMenu();
     auto status_bar = gui::CreateStatusBar();
@@ -38,9 +38,9 @@ int main(int argc, char* argv[]) {
             });
 
     auto commandDialog = gui::CreateCommandDialog();
-    auto mainContainer = baseContainer | Modal(commandDialog, &appState.commandDialog.isActive);
+    auto mainContainer = baseContainer | Modal(commandDialog, &app.commandDialog.isActive);
     auto mainEventHandler = CatchEvent(mainContainer, [&](Event event){
-        if(appState.commandDialog.isActive)
+        if(app.commandDialog.isActive)
         {
             return false;
         }
@@ -50,9 +50,9 @@ int main(int argc, char* argv[]) {
 
 
     menu->TakeFocus();
-    appState.screen.Loop(mainEventHandler);
+    app.screen.Loop(mainEventHandler);
 
-    std::cout << appState.debug << std::endl;
+    std::cout << app.debug << std::endl;
 
     return EXIT_SUCCESS;
 }

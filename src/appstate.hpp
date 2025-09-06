@@ -2,10 +2,10 @@
 
 #include <ftxui/component/screen_interactive.hpp>
 
-struct AppState
+struct App
 {
-    static AppState& Instance() {
-        static AppState instance;
+    static App& Instance() {
+        static App instance;
         return instance;
     }
 

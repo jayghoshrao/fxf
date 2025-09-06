@@ -8,10 +8,10 @@ const Command Command::Null([](std::vector<std::string>){return false;});
 bool Command::Execute(std::string extraArgs /*= ""*/) const {
     std::string command = m_command + ' '  + extraArgs;
 
-    auto& appState = AppState::Instance();
+    auto& app = App::Instance();
 
-    // TODO: Fix appState.lines bad access
-    auto selected_line_split = split_csv_line(appState.lines[appState.selector], appState.delimiter);
+    // TODO: Fix app.lines bad access
+    auto selected_line_split = split_csv_line(app.lines[app.selector], app.delimiter);
     auto commandstr = substitute_template(command, selected_line_split);
 
     if(m_nativeCommandExecutor)
@@ -41,8 +41,8 @@ bool Command::Execute(std::string extraArgs /*= ""*/) const {
             }
         case ExecutionPolicy::Modal:
             {
-                appState.display.string = ExecAndCapture(commandstr.c_str());
-                appState.display.isActive = true;
+                app.display.string = ExecAndCapture(commandstr.c_str());
+                app.display.isActive = true;
                 return true;
             }
         default:
