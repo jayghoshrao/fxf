@@ -6,7 +6,7 @@
 #include <iostream>
 #include <sstream>
 
-#include "appstate.hpp"
+#include "app.hpp"
 #include "utils.hpp"
 
 
@@ -34,8 +34,8 @@ public:
         m_nativeCommandExecutor { std::move(nativeCommandExec)} {}
 
     Command(std::string command, ExecutionPolicy execPolicy) :
-        m_command(command), 
-        m_execPolicy(execPolicy) 
+        m_command(command),
+        m_execPolicy(execPolicy)
     {
     }
 

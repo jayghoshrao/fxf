@@ -1,5 +1,5 @@
 #include "components.hpp"
-#include "appstate.hpp"
+#include "app.hpp"
 #include "registries.hpp"
 
 namespace gui{

@@ -1,6 +1,6 @@
 #include "command.hpp"
 #include "registries.hpp"
-#include "appstate.hpp"
+#include "app.hpp"
 
 /* static */
 const Command Command::Null([](std::vector<std::string>){return false;});

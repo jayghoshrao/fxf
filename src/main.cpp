@@ -1,9 +1,7 @@
 #include <iostream>
-
 #include <CLI/CLI.hpp>
-// #include <ftxui/component/component.hpp>
 
-#include "appstate.hpp"
+#include "app.hpp"
 
 using namespace ftxui;
 
