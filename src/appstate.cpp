@@ -14,6 +14,29 @@ void App::Load(const std::string& filename)
 void App::CreateGUI()
 {
     components.menu = gui::CreateMenu();
+    components.menu |= CatchEvent([&](Event event){
+        if(event == Event::Character('G'))
+        {
+            components.menu->OnEvent(Event::End);
+            return true;
+        }
+        static bool got_g = false;
+
+        if(event == Event::Character('g')) {
+            if(got_g) {
+                got_g = false;
+                components.menu->OnEvent(Event::Home);
+                return true;
+            } else {
+                got_g = true;
+                return true;
+            }
+        }
+
+        got_g = false;
+        return false;
+    });
+
     components.statusBar = gui::CreateStatusBar();
     components.baseContainer = Container::Vertical({
             components.statusBar,

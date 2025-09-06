@@ -42,30 +42,6 @@ Component CreateMenu()
     auto menuOption = MenuOption();
     auto menu = Menu(&app.controls.menuEntries, &app.controls.selector, menuOption)
         | vscroll_indicator | frame | border;
-
-    menu |= CatchEvent([&](Event event){
-        if(event == Event::Character('G'))
-        {
-            menu->OnEvent(Event::End);
-            return true;
-        }
-        static bool got_g = false;
-
-        if(event == Event::Character('g')) {
-            if(got_g) {
-                got_g = false;
-                menu->OnEvent(Event::Home);
-                return true;
-            } else {
-                got_g = true;
-                return true;
-            }
-        }
-
-        got_g = false;
-        return false;
-    });
-
     return menu;
 }
 
