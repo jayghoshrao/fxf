@@ -139,6 +139,7 @@ bool KeybindRegistry::Execute(ftxui::Event event) const{
             Command([&](const std::vector<std::string>&){
                 App& app = App::Instance();
                 app.cache.menuEntries = app.controls.menuEntries;
+                app.cache.lines = app.controls.lines; // TODO:potentially wasteful?
                 app.FocusSearch();
                 return true;
                 })

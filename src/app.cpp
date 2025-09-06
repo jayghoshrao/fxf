@@ -3,6 +3,7 @@
 #include "utils.hpp"
 
 #include <ftxui/component/component.hpp>
+#include <numeric>
 
 using namespace ftxui;
 
@@ -132,13 +133,18 @@ Component App::CreateStatusBar()
     searchInputOption.on_change = [&]{
         controls.screen.Post([&]{
             auto fuzzyResults = extract(controls.searchDialog.string, cache.menuEntries, 0.0);
-            std::ranges::sort(fuzzyResults, std::ranges::greater{}, &std::pair<std::string, double>::second);
+            std::vector<size_t> indices(fuzzyResults.size());
+            std::ranges::iota(indices, 0);
 
-            controls.menuEntries.clear();
-            for(const auto& item : fuzzyResults)
-            {
-                controls.menuEntries.emplace_back(item.first);
-            }
+            std::ranges::sort(indices, std::ranges::greater{}, [&](size_t i) {
+                return fuzzyResults[i].second;
+            });
+
+            auto sortedLines = indices | std::views::transform([&](size_t i) { return cache.lines[i]; });
+
+            // Copy back the reordered views into original vectors
+            std::ranges::copy(sortedLines, controls.lines.data.begin());
+            controls.menuEntries = controls.lines.GetMenuEntries(controls.viewTemplate);
         });
     };
 

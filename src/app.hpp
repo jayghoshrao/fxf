@@ -27,6 +27,7 @@ public:
 
     struct Cache {
         std::vector<std::string> menuEntries;
+        RowTable lines;
     } cache;
 
 public:
