@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include <CLI/CLI.hpp>
+#include <ftxui/component/component.hpp>
 
 #include "components.hpp"
 #include "utils.hpp"
@@ -30,10 +31,16 @@ int main(int argc, char* argv[]) {
     appState.menuEntries = appState.lines;
 
     auto menu = gui::CreateMenu();
+    auto status_bar = gui::CreateStatusBar();
+    auto baseContainer = Container::Vertical({
+            status_bar,
+            menu,
+            });
+
     auto commandDialog = gui::CreateCommandDialog();
-    auto mainContainer = menu | Modal(commandDialog, &appState.commandDialog.isShown);
+    auto mainContainer = baseContainer | Modal(commandDialog, &appState.commandDialog.isActive);
     auto mainEventHandler = CatchEvent(mainContainer, [&](Event event){
-        if(appState.commandDialog.isShown)
+        if(appState.commandDialog.isActive)
         {
             return false;
         }
@@ -42,7 +49,7 @@ int main(int argc, char* argv[]) {
     });
 
 
-    mainContainer->TakeFocus();
+    menu->TakeFocus();
     appState.screen.Loop(mainEventHandler);
 
     std::cout << appState.debug << std::endl;

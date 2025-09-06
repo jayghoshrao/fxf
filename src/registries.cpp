@@ -140,7 +140,16 @@ bool KeybindRegistry::Execute(ftxui::Event event) const{
             ftxui::Event::Character(':'),
             Command([&](const std::vector<std::string>&){
                 AppState& appState = AppState::Instance();
-                appState.commandDialog.isShown = true;
+                appState.commandDialog.isActive = true;
+                return true;
+                })
+            );
+
+    keybinds.Register(
+            ftxui::Event::Character('/'),
+            Command([&](const std::vector<std::string>&){
+                AppState& appState = AppState::Instance();
+                appState.searchDialog.isActive = true;
                 return true;
                 })
             );

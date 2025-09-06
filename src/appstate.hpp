@@ -9,9 +9,9 @@ struct AppState
         return instance;
     }
 
-    struct Modal {
+    struct FocusableInput {
         std::string string = "";
-        bool isShown = false;
+        bool isActive = false;
     };
 
     ftxui::ScreenInteractive screen = ftxui::ScreenInteractive::Fullscreen();
@@ -22,8 +22,9 @@ struct AppState
     std::vector<std::string> menuEntries;
     int selector = 0;
 
-    Modal commandDialog;
-    Modal display;
+    FocusableInput commandDialog;
+    FocusableInput display;
+    FocusableInput searchDialog;
 
     std::string debug = "";
 };

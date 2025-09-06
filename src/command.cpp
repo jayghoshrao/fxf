@@ -42,7 +42,7 @@ bool Command::Execute(std::string extraArgs /*= ""*/) const {
         case ExecutionPolicy::Modal:
             {
                 appState.display.string = ExecAndCapture(commandstr.c_str());
-                appState.display.isShown = true;
+                appState.display.isActive = true;
                 return true;
             }
         default:

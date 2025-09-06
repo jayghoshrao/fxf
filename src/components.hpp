@@ -5,4 +5,5 @@
 namespace gui{
     ftxui::Component CreateCommandDialog();
     ftxui::Component CreateMenu();
+    ftxui::Component CreateStatusBar();
 }

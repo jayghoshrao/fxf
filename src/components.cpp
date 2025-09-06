@@ -15,7 +15,7 @@ namespace gui{
         commandInputOption.on_enter = [&]{
             appState.screen.Post([&]{
                     commands.Execute(appState.commandDialog.string);
-                    appState.commandDialog.isShown = false;
+                    appState.commandDialog.isActive = false;
                     appState.commandDialog.string = "";
                     });
         };
@@ -25,12 +25,12 @@ namespace gui{
                 if(event == Event::Escape)
                 {
                 appState.commandDialog.string = "";
-                appState.commandDialog.isShown = false;
+                appState.commandDialog.isActive = false;
                 return true;
                 }
                 return false;
                 });
-        return Renderer(commandInput, [=]{ return 
+        return Renderer(commandInput, [=]{ return
                 commandInput->Render() | size(WIDTH, EQUAL, Terminal::Size().dimx * 0.5)
                 ;}) | border ;
     }
@@ -68,5 +68,31 @@ namespace gui{
         return menu;
     }
 
+    Component CreateStatusBar()
+    {
+        AppState& appState = AppState::Instance();
+        auto searchInputOption = InputOption::Default();
+        searchInputOption.multiline = false;
+        // searchInputOption.on_enter = [&]{
+        //     appState.screen.Post([&]{
+        //             // TODO: apply search, modify menuEntries, shift focus
+        //             });
+        // };
+
+        auto searchInput = Input(&appState.searchDialog.string, &appState.searchDialog.string, searchInputOption) ;
+        searchInput |= CatchEvent([&](Event event){
+                if(event == Event::Escape)
+                {
+                appState.searchDialog.string = "";
+                appState.searchDialog.isActive = false;
+                // TODO: appState.ResetFocus()
+                return true;
+                }
+                return false;
+                });
+
+        return searchInput | size(HEIGHT, EQUAL,1);
+
+    }
 
 }
