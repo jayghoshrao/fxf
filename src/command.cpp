@@ -9,10 +9,7 @@ bool Command::Execute(std::string extraArgs /*= ""*/) const {
     std::string command = m_command + ' '  + extraArgs;
 
     auto& app = App::Instance();
-
-    // TODO: Fix app.lines bad access
-    auto selected_line_split = split_csv_line(app.controls.lines[app.controls.selector], app.controls.delimiter);
-    auto commandstr = substitute_template(command, selected_line_split);
+    auto commandstr = app.controls.lines.Substitute(command, app.controls.selector);
 
     if(m_nativeCommandExecutor)
     {

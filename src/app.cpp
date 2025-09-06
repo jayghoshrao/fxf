@@ -1,16 +1,17 @@
 #include "app.hpp"
 #include "registries.hpp"
-#include "read.hpp"
 #include "utils.hpp"
 
 #include <ftxui/component/component.hpp>
 
 using namespace ftxui;
 
-void App::Load(const std::string& filename)
+void App::Load(const std::string& filename, char delimiter)
 {
-    controls.lines = io::read_lines(filename);
-    controls.menuEntries = controls.lines;
+    controls.delimiter = delimiter;
+    controls.lines.Load(filename, controls.delimiter);
+    this->ApplyViewTemplate("{}");
+    controls.selector = 0; // TODO:
 }
 
 void App::CreateGUI()
@@ -156,3 +157,13 @@ Component App::CreateStatusBar()
     return searchInput | size(HEIGHT, EQUAL,1);
 }
 
+void App::ApplyViewTemplate(std::string_view viewTemplate)
+{
+    controls.viewTemplate = viewTemplate;
+    controls.menuEntries = controls.lines.GetMenuEntries(controls.viewTemplate);
+}
+
+void App::ReapplyViewTemplate()
+{
+    controls.menuEntries = controls.lines.GetMenuEntries(controls.viewTemplate);
+}

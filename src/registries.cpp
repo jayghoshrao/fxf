@@ -1,6 +1,5 @@
 #include "registries.hpp"
 #include "app.hpp"
-#include "read.hpp"
 
 #include <filesystem>
 
@@ -38,9 +37,7 @@ void CommandRegistry::RegisterDefaultCommands()
         if(!std::filesystem::is_regular_file(filename))
             return false;
 
-        app.controls.lines = io::read_lines(filename);
-        app.controls.menuEntries = app.controls.lines;
-        app.controls.selector = 0; // TODO:
+        app.Load(filename, delimiter[0]);
         return true;
     });
 
@@ -52,7 +49,7 @@ void CommandRegistry::RegisterDefaultCommands()
     commands.Register("view", [&](const std::vector<std::string>& args) {
         if(args.size() < 1)
         {
-            app.controls.menuEntries = app.controls.lines;
+            app.ApplyViewTemplate("{}");
             return true;
         }
 
@@ -63,13 +60,7 @@ void CommandRegistry::RegisterDefaultCommands()
             viewTemplate += args[i];
         }
 
-        size_t i=0;
-        for(std::string& ref : app.controls.menuEntries)
-        {
-            auto currentSplit = split_csv_line(app.controls.lines[i++], app.controls.delimiter);
-            ref = substitute_template(viewTemplate, currentSplit);
-        }
-
+        app.ApplyViewTemplate(viewTemplate);
         return true;
     });
 
@@ -88,14 +79,13 @@ void CommandRegistry::RegisterDefaultCommands()
             cmdTemplate += args[i];
         }
 
-        // keybinds.Register(key, Command(cmdTemplate, Command::StringToExecutionPolicy(cmdType)));
         keybinds.Register(ftxui::Event::Character(key[0]), Command(cmdTemplate, Command::StringToExecutionPolicy(cmdType)));
         return true;
     });
 
     commands.Register("delete", [&](const std::vector<std::string>& args) {
-        app.controls.lines.erase(app.controls.lines.begin() + app.controls.selector);
-        app.controls.menuEntries = app.controls.lines;
+        app.controls.lines.Erase(app.controls.selector);
+        app.ReapplyViewTemplate();
         return true;
     });
 

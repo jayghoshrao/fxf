@@ -9,7 +9,7 @@ std::vector<std::string_view> split_csv_line_view(std::string_view line, char de
 std::string EventToString(const ftxui::Event& event);
 
 std::string ExecAndCapture(const std::string& cmd);
-std::string substitute_template(const std::string& template_str, const std::vector<std::string>& data);
+std::string substitute_template(std::string_view template_str, const std::vector<std::string>& data);
 std::string trim(const std::string& str);
 
 template <typename Sentence1,

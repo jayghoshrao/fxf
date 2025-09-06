@@ -11,12 +11,13 @@ int main(int argc, char* argv[]) {
     CLI::App args{"args"};
 
     std::string filename;
+    char delimiter = '|';
     args.add_option("file", filename, "file to read");
-    args.add_option("-d,--delimiter", app.controls.delimiter, "Delimiter");
+    args.add_option("-d,--delimiter", delimiter, "Delimiter");
 
     CLI11_PARSE(args, argc, argv);
 
-    app.Load(filename);
+    app.Load(filename, delimiter);
     app.CreateGUI();
     app.Loop();
 

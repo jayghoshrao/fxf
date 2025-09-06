@@ -80,8 +80,8 @@ std::string ExecAndCapture(const std::string& cmd) {
     return result;
 }
 
-std::string substitute_template(const std::string& template_str, const std::vector<std::string>& data) {
-    std::string result = template_str;
+std::string substitute_template(std::string_view template_str, const std::vector<std::string>& data) {
+    std::string result{template_str};
 
     // Create joined string for {} placeholder
     std::string joined_data;

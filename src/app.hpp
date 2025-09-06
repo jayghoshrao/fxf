@@ -2,6 +2,8 @@
 
 #include <ftxui/component/screen_interactive.hpp>
 
+#include "RowTable.hpp"
+
 class App
 {
 public:
@@ -12,7 +14,7 @@ public:
 
     struct Controls {
         ftxui::ScreenInteractive screen = ftxui::ScreenInteractive::Fullscreen();
-        std::vector<std::string> lines;
+        RowTable lines;
         char delimiter = '|';
         std::vector<std::string> menuEntries;
         int selector = 0;
@@ -20,6 +22,7 @@ public:
         ControlHandle display;
         ControlHandle searchDialog;
         std::string debug = "";
+        std::string viewTemplate = "{}";
     } controls;
 
     struct Cache {
@@ -32,11 +35,13 @@ public:
         return instance;
     }
 
-    void Load(const std::string& filename);
+    void Load(const std::string& filename, char delimiter);
     void CreateGUI();
     void Loop();
     void ResetFocus();
     void FocusSearch();
+    void ApplyViewTemplate(std::string_view viewTemplate);
+    void ReapplyViewTemplate();
 
 private:
     struct ComponentChildren {

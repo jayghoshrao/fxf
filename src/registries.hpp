@@ -63,16 +63,10 @@ public:
         KeybindRegistry(KeybindRegistry&&) = delete;
         KeybindRegistry& operator=(KeybindRegistry&&) = delete;
 
-
-    // void Register(std::string event, Command&& command) {
-    //     map_.emplace(event, command);
-    // }
-
     void Register(ftxui::Event event, Command&& command) {
         map_.emplace(event, command);
     }
 
-    // bool Execute(std::string key) const;
     bool Execute(ftxui::Event event) const;
 
     static void RegisterDefaultKeybinds();
