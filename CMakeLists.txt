@@ -26,10 +26,9 @@ FetchContent_Declare(ftxui
 FetchContent_MakeAvailable(ftxui)
 
 # ------------------------------------------------------------------------------
-# --- Fetch CLI11 --------------------------------------------------------------
-
 include(FetchContent)
 
+# --- Fetch CLI11 --------------------------------------------------------------
 FetchContent_Declare(
     cli11_proj
     QUIET
@@ -37,6 +36,12 @@ FetchContent_Declare(
     GIT_TAG v2.5.0
 )
 FetchContent_MakeAvailable(cli11_proj)
+
+# --- Fetch rapidfuzz ----------------------------------------------------------
+FetchContent_Declare(rapidfuzz
+  GIT_REPOSITORY https://github.com/rapidfuzz/rapidfuzz-cpp.git
+  GIT_TAG main)
+FetchContent_MakeAvailable(rapidfuzz)
 
 # ------------------------------------------------------------------------------
 
@@ -48,6 +53,7 @@ target_link_libraries(fxf
   PRIVATE ftxui::dom
   PRIVATE ftxui::component
   PRIVATE CLI11::CLI11
+  PRIVATE rapidfuzz::rapidfuzz
 )
 
 if (EMSCRIPTEN)
