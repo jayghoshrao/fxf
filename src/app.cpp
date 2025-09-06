@@ -54,7 +54,7 @@ void App::CreateGUI()
     KeybindRegistry& keybinds = KeybindRegistry::Instance();
 
     components.mainEventHandler = CatchEvent(components.mainContainer, [&](Event event){
-        if(controls.commandDialog.isActive)
+        if(controls.commandDialog.isActive || controls.searchDialog.isActive)
         {
             return false;
         }
