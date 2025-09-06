@@ -2,29 +2,43 @@
 
 #include <ftxui/component/screen_interactive.hpp>
 
-struct App
+class App
 {
-    static App& Instance() {
-        static App instance;
-        return instance;
-    }
+    public:
+        struct ControlHandle {
+            std::string string = "";
+            bool isActive = false;
+        };
 
-    struct FocusableInput {
-        std::string string = "";
-        bool isActive = false;
-    };
+        struct Controls {
+            ftxui::ScreenInteractive screen = ftxui::ScreenInteractive::Fullscreen();
+            std::vector<std::string> lines;
+            char delimiter = '|';
+            std::vector<std::string> menuEntries;
+            int selector = 0;
+            ControlHandle commandDialog;
+            ControlHandle display;
+            ControlHandle searchDialog;
+            std::string debug = "";
+        } controls;
 
-    ftxui::ScreenInteractive screen = ftxui::ScreenInteractive::Fullscreen();
+    public:
+        static App& Instance() {
+            static App instance;
+            return instance;
+        }
 
-    std::vector<std::string> lines;
-    char delimiter = '|';
+        void Load(const std::string& filename);
+        void CreateGUI();
+        void Loop();
 
-    std::vector<std::string> menuEntries;
-    int selector = 0;
-
-    FocusableInput commandDialog;
-    FocusableInput display;
-    FocusableInput searchDialog;
-
-    std::string debug = "";
+    private:
+        struct ComponentChildren {
+            ftxui::Component menu{nullptr};
+            ftxui::Component statusBar{nullptr};
+            ftxui::Component baseContainer{nullptr};
+            ftxui::Component mainContainer{nullptr};
+            ftxui::Component commandDialog{nullptr};
+            ftxui::Component mainEventHandler{nullptr};
+        } components;
 };

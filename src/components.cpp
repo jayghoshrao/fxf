@@ -13,19 +13,19 @@ namespace gui{
         auto commandInputOption = InputOption::Default();
         commandInputOption.multiline = false;
         commandInputOption.on_enter = [&]{
-            app.screen.Post([&]{
-                    commands.Execute(app.commandDialog.string);
-                    app.commandDialog.isActive = false;
-                    app.commandDialog.string = "";
+            app.controls.screen.Post([&]{
+                    commands.Execute(app.controls.commandDialog.string);
+                    app.controls.commandDialog.isActive = false;
+                    app.controls.commandDialog.string = "";
                     });
         };
 
-        auto commandInput = Input(&app.commandDialog.string, &app.commandDialog.string, commandInputOption);
+        auto commandInput = Input(&app.controls.commandDialog.string, &app.controls.commandDialog.string, commandInputOption);
         commandInput |= CatchEvent([&](Event event){
                 if(event == Event::Escape)
                 {
-                app.commandDialog.string = "";
-                app.commandDialog.isActive = false;
+                app.controls.commandDialog.string = "";
+                app.controls.commandDialog.isActive = false;
                 return true;
                 }
                 return false;
@@ -39,7 +39,7 @@ namespace gui{
     {
         App& app = App::Instance();
         auto menuOption = MenuOption();
-        auto menu = Menu(&app.menuEntries, &app.selector, menuOption)
+        auto menu = Menu(&app.controls.menuEntries, &app.controls.selector, menuOption)
             | vscroll_indicator | frame | border;
 
         menu |= CatchEvent([&](Event event){
@@ -74,18 +74,18 @@ namespace gui{
         auto searchInputOption = InputOption::Default();
         searchInputOption.multiline = false;
         // searchInputOption.on_enter = [&]{
-        //     app.screen.Post([&]{
+        //     app.controls.screen.Post([&]{
         //             // TODO: apply search, modify menuEntries, shift focus
         //             });
         // };
 
-        auto searchInput = Input(&app.searchDialog.string, &app.searchDialog.string, searchInputOption) ;
+        auto searchInput = Input(&app.controls.searchDialog.string, &app.controls.searchDialog.string, searchInputOption) ;
         searchInput |= CatchEvent([&](Event event){
                 if(event == Event::Escape)
                 {
-                app.searchDialog.string = "";
-                app.searchDialog.isActive = false;
-                // TODO: app.ResetFocus()
+                app.controls.searchDialog.string = "";
+                app.controls.searchDialog.isActive = false;
+                // TODO: app.controls.ResetFocus()
                 return true;
                 }
                 return false;

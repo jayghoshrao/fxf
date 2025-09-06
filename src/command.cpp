@@ -11,7 +11,7 @@ bool Command::Execute(std::string extraArgs /*= ""*/) const {
     auto& app = App::Instance();
 
     // TODO: Fix app.lines bad access
-    auto selected_line_split = split_csv_line(app.lines[app.selector], app.delimiter);
+    auto selected_line_split = split_csv_line(app.controls.lines[app.controls.selector], app.controls.delimiter);
     auto commandstr = substitute_template(command, selected_line_split);
 
     if(m_nativeCommandExecutor)
@@ -41,8 +41,8 @@ bool Command::Execute(std::string extraArgs /*= ""*/) const {
             }
         case ExecutionPolicy::Modal:
             {
-                app.display.string = ExecAndCapture(commandstr.c_str());
-                app.display.isActive = true;
+                app.controls.display.string = ExecAndCapture(commandstr.c_str());
+                app.controls.display.isActive = true;
                 return true;
             }
         default:

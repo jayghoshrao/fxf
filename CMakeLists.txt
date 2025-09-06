@@ -40,7 +40,7 @@ FetchContent_MakeAvailable(cli11_proj)
 
 # ------------------------------------------------------------------------------
 
-add_executable(fxf src/utils.cpp src/read.cpp src/command.cpp src/registries.cpp src/components.cpp src/main.cpp)
+add_executable(fxf src/utils.cpp src/read.cpp src/command.cpp src/registries.cpp src/components.cpp src/appstate.cpp src/main.cpp)
 target_include_directories(fxf PRIVATE src)
 
 target_link_libraries(fxf

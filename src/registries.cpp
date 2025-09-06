@@ -38,21 +38,21 @@ void CommandRegistry::RegisterDefaultCommands()
         if(!std::filesystem::is_regular_file(filename))
             return false;
 
-        app.lines = io::read_lines(filename);
-        app.menuEntries = app.lines;
-        app.selector = 0; // TODO:
+        app.controls.lines = io::read_lines(filename);
+        app.controls.menuEntries = app.controls.lines;
+        app.controls.selector = 0; // TODO:
         return true;
     });
 
     commands.Register("quit", [&](const std::vector<std::string>& args) {
-        app.screen.ExitLoopClosure()();
+        app.controls.screen.ExitLoopClosure()();
         return true;
     });
 
     commands.Register("view", [&](const std::vector<std::string>& args) {
         if(args.size() < 1)
         {
-            app.menuEntries = app.lines;
+            app.controls.menuEntries = app.controls.lines;
             return true;
         }
 
@@ -64,9 +64,9 @@ void CommandRegistry::RegisterDefaultCommands()
         }
 
         size_t i=0;
-        for(std::string& ref : app.menuEntries)
+        for(std::string& ref : app.controls.menuEntries)
         {
-            auto currentSplit = split_csv_line(app.lines[i++], app.delimiter);
+            auto currentSplit = split_csv_line(app.controls.lines[i++], app.controls.delimiter);
             ref = substitute_template(viewTemplate, currentSplit);
         }
 
@@ -94,8 +94,8 @@ void CommandRegistry::RegisterDefaultCommands()
     });
 
     commands.Register("delete", [&](const std::vector<std::string>& args) {
-        app.lines.erase(app.lines.begin() + app.selector);
-        app.menuEntries = app.lines;
+        app.controls.lines.erase(app.controls.lines.begin() + app.controls.selector);
+        app.controls.menuEntries = app.controls.lines;
         return true;
     });
 
@@ -140,7 +140,7 @@ bool KeybindRegistry::Execute(ftxui::Event event) const{
             ftxui::Event::Character(':'),
             Command([&](const std::vector<std::string>&){
                 App& app = App::Instance();
-                app.commandDialog.isActive = true;
+                app.controls.commandDialog.isActive = true;
                 return true;
                 })
             );
@@ -149,7 +149,7 @@ bool KeybindRegistry::Execute(ftxui::Event event) const{
             ftxui::Event::Character('/'),
             Command([&](const std::vector<std::string>&){
                 App& app = App::Instance();
-                app.searchDialog.isActive = true;
+                app.controls.searchDialog.isActive = true;
                 return true;
                 })
             );
