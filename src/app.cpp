@@ -41,9 +41,14 @@ void App::CreateGUI()
         return false;
     });
 
+    auto divider = Renderer([&]{
+        return separatorHeavy();
+    }) | size(HEIGHT, EQUAL, 1);
+
     components.statusBar = this->CreateStatusBar();
     components.baseContainer = Container::Vertical({
             components.statusBar,
+            divider,
             components.menu,
             });
     components.commandDialog = this->CreateCommandDialog();
@@ -116,7 +121,7 @@ Component App::CreateMenu()
 {
     auto menuOption = MenuOption();
     auto menu = Menu(&controls.menuEntries, &controls.selector, menuOption)
-        | vscroll_indicator | frame | border;
+        | vscroll_indicator | frame;
     return menu;
 }
 
@@ -164,10 +169,10 @@ Component App::CreateStatusBar()
         return text("> ");
     });
 
-    auto barTabs = Container::Horizontal({prompt_icon, searchInput});
+    auto barTabs = Container::Horizontal({prompt_icon, searchInput}) | size(HEIGHT, EQUAL,1);
 
     components.searchInput = searchInput;
-    return barTabs | size(HEIGHT, EQUAL,1);
+    return barTabs;
 }
 
 void App::ApplyViewTemplate(std::string_view viewTemplate)
