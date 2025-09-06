@@ -1,6 +1,5 @@
 #include "utils.hpp"
 
-#include <filesystem>
 #include <ranges>
 #include <memory>
 #include <numeric>
@@ -112,7 +111,6 @@ std::string substitute_template(const std::string& template_str, const std::vect
 
     return result;
 }
-
 
 std::string trim(const std::string& str) {
     const auto first = str.find_first_not_of(" \t\n\r\f\v");

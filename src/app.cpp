@@ -1,6 +1,7 @@
 #include "app.hpp"
 #include "registries.hpp"
 #include "read.hpp"
+#include "utils.hpp"
 
 #include <ftxui/component/component.hpp>
 
@@ -122,11 +123,19 @@ Component App::CreateStatusBar()
     auto searchInputOption = InputOption::Default();
     searchInputOption.multiline = false;
 
-    // searchInputOption.on_enter = [&]{
-    //     controls.screen.Post([&]{
-    //             // TODO: apply search, modify menuEntries, shift focus
-    //             });
-    // };
+    searchInputOption.on_enter = [&]{
+        controls.screen.Post([&]{
+            auto fuzzyResults = extract(controls.searchDialog.string, controls.menuEntries, 0.0);
+            std::ranges::sort(fuzzyResults, std::ranges::greater{}, &std::pair<std::string, double>::second);
+
+            controls.menuEntries.clear();
+            for(const auto& item : fuzzyResults)
+            {
+                controls.menuEntries.emplace_back(item.first);
+            }
+            this->ResetFocus();
+        });
+    };
 
     auto searchInput = Input(&controls.searchDialog.string, &controls.searchDialog.string, searchInputOption) ;
     searchInput |= CatchEvent([&](Event event){
