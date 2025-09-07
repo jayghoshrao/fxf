@@ -107,6 +107,24 @@ void CommandRegistry::RegisterDefaultCommands()
 
     commands.Register("cmd", Command(commands.Get("command")));
 
+    commands.Register("show", [&](const std::vector<std::string>& args){
+        if(args.size() < 1)
+        {
+            app.ApplyViewTemplate("{}");
+            return true;
+        }
+
+        try {
+            int idx = std::stoi(args[0]);
+            app.ApplyViewTemplate("{" + args[0] +  "}");
+            return true;
+        } catch (const std::exception& e) {
+            return false;
+        }
+
+        return false;
+    });
+
 }
 
 bool KeybindRegistry::Execute(ftxui::Event event) const{
