@@ -173,4 +173,9 @@ bool KeybindRegistry::Execute(ftxui::Event event) const{
             Command("show " + numStr, Command::ExecutionPolicy::Alias)
         );
     }
+
+    keybinds.Register(
+        ftxui::Event::Character('='),
+        Command("show", Command::ExecutionPolicy::Alias)
+    );
 }
