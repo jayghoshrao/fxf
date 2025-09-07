@@ -18,6 +18,7 @@ public:
         char delimiter = '|';
         std::vector<std::string> menuEntries;
         int selected = 0;
+        int focused = 0;
         ControlHandle commandDialog;
         ControlHandle display;
         ControlHandle searchDialog;

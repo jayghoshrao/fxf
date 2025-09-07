@@ -137,6 +137,7 @@ Component App::CreateCommandDialog()
 Component App::CreateMenu()
 {
     auto menuOption = MenuOption();
+    menuOption.focused_entry = &controls.focused;
     auto menu = Menu(&controls.menuEntries, &controls.selected, menuOption)
         | vscroll_indicator | frame;
     return menu;
