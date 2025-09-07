@@ -23,6 +23,7 @@ public:
         ControlHandle searchDialog;
         std::string debug = "";
         std::string viewTemplate = "{}";
+        std::string searchPrompt = "> ";
     } controls;
 
     struct Cache {
@@ -53,6 +54,7 @@ private:
         ftxui::Component commandDialog{nullptr};
         ftxui::Component mainEventHandler{nullptr};
         ftxui::Component searchInput{nullptr};
+        ftxui::Component searchPrompt{nullptr};
     } components;
 
     ftxui::Component CreateMenu();

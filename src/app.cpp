@@ -102,6 +102,16 @@ Component App::CreateCommandDialog()
         });
     };
 
+    commandInputOption.transform = [&](InputState state) {
+        state.element |= color(Color::White);
+
+        if (state.is_placeholder) {
+            state.element |= dim;
+        }
+
+        return state.element;
+    };
+
     auto commandInput = Input(&controls.commandDialog.string, &controls.commandDialog.string, commandInputOption);
     commandInput |= CatchEvent([&](Event event){
         if(event == Event::Escape)
@@ -129,11 +139,24 @@ Component App::CreateStatusBar()
 {
     auto searchInputOption = InputOption::Default();
     searchInputOption.multiline = false;
+    searchInputOption.placeholder = "Press / to fuzzy search";
     searchInputOption.on_enter = [&]{
         controls.screen.Post([&]{
             this->ResetFocus();
         });
     };
+
+    searchInputOption.transform = [&](InputState state) {
+
+        state.element |= color(Color::White);
+
+        if (state.is_placeholder) {
+            state.element |= dim;
+        }
+
+        return state.element;
+    };
+
 
     searchInputOption.on_change = [&]{
         controls.screen.Post([&]{
@@ -165,11 +188,12 @@ Component App::CreateStatusBar()
         return false;
     });
 
-    auto prompt_icon = Renderer([&]{
-        return text("> ");
+    controls.searchPrompt = "> ";
+    components.searchPrompt = Renderer([&]{
+        return text(controls.searchPrompt);
     });
 
-    auto barTabs = Container::Horizontal({prompt_icon, searchInput}) | size(HEIGHT, EQUAL,1);
+    auto barTabs = Container::Horizontal({components.searchPrompt, searchInput}) | size(HEIGHT, EQUAL,1);
 
     components.searchInput = searchInput;
     return barTabs;

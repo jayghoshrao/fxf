@@ -126,22 +126,22 @@ bool KeybindRegistry::Execute(ftxui::Event event) const{
     );
 
     keybinds.Register(
-            ftxui::Event::Character(':'),
-            Command([&](const std::vector<std::string>&){
-                App& app = App::Instance();
-                app.controls.commandDialog.isActive = true;
-                return true;
-                })
-            );
+        ftxui::Event::Character(':'),
+        Command([&](const std::vector<std::string>&){
+            App& app = App::Instance();
+            app.controls.commandDialog.isActive = true;
+            return true;
+        })
+    );
 
     keybinds.Register(
-            ftxui::Event::Character('/'),
-            Command([&](const std::vector<std::string>&){
-                App& app = App::Instance();
-                app.cache.menuEntries = app.controls.menuEntries;
-                app.cache.lines = app.controls.lines; // TODO:potentially wasteful?
-                app.FocusSearch();
-                return true;
-                })
-            );
+        ftxui::Event::Character('/'),
+        Command([&](const std::vector<std::string>&){
+            App& app = App::Instance();
+            app.cache.menuEntries = app.controls.menuEntries;
+            app.cache.lines = app.controls.lines; // TODO:potentially wasteful?
+            app.FocusSearch();
+            return true;
+        })
+    );
 }
