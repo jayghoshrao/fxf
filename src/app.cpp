@@ -136,7 +136,20 @@ Component App::CreateCommandDialog()
 
 Component App::CreateMenu()
 {
+    auto menuEntryOption = MenuEntryOption();
+    menuEntryOption.transform = [](const EntryState& s) {
+        int scrollBarWidth = 1;
+        int entryWidth = Terminal::Size().dimx - scrollBarWidth;
+        int ellipsesWidth = 3;
+        std::string label = s.label;
+        if(label.size() > entryWidth) label = label.substr(0, entryWidth-ellipsesWidth) + "...";
+        auto elem = text(label);
+        if (s.active) elem = elem | bold | inverted;
+        return elem;
+    };
+
     auto menuOption = MenuOption();
+    menuOption.entries_option = menuEntryOption;
     menuOption.focused_entry = &controls.focused;
     auto menu = Menu(&controls.menuEntries, &controls.selected, menuOption) | vscroll_indicator | frame;
     menu |= CatchEvent([&](Event event) {
