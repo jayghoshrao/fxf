@@ -126,6 +126,16 @@ void CommandRegistry::RegisterDefaultCommands()
         return false;
     });
 
+    commands.Register("open", [&](const std::vector<std::string>& args){
+        auto str = app.controls.lines.GetJoinedRow(app.controls.selected);
+        if(const std::string& url = ExtractFirstURL(str); !url.empty())
+        {
+            Command("firefox" , Command::ExecutionPolicy::Silent).Execute(url);
+            return true;
+        }
+        return false;
+    });
+
 }
 
 bool KeybindRegistry::Execute(ftxui::Event event) const{
@@ -177,5 +187,10 @@ bool KeybindRegistry::Execute(ftxui::Event event) const{
     keybinds.Register(
         ftxui::Event::Character('='),
         Command("show", Command::ExecutionPolicy::Alias)
+    );
+
+    keybinds.Register(
+        ftxui::Event::o,
+        Command("open", Command::ExecutionPolicy::Alias)
     );
 }

@@ -3,6 +3,7 @@
 #include <ranges>
 #include <memory>
 #include <numeric>
+#include <regex>
 
 using namespace ftxui;
 
@@ -118,4 +119,31 @@ std::string trim(const std::string& str) {
         return ""; // all whitespace
     const auto last = str.find_last_not_of(" \t\n\r\f\v");
     return str.substr(first, (last - first + 1));
+}
+
+std::vector<std::string> ExtractURLs(const std::string& text) {
+    std::vector<std::string> urls;
+    std::regex url_regex(R"((https?://(?:www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_+.~#?&/=]*)))",
+                         std::regex::icase);
+
+    auto begin = std::sregex_iterator(text.begin(), text.end(), url_regex);
+    auto end = std::sregex_iterator();
+
+    for (auto it = begin; it != end; ++it) {
+        urls.push_back(it->str());
+    }
+    return urls;
+}
+
+std::string ExtractFirstURL(const std::string& text) {
+    static const std::regex url_regex(
+        R"((https?://(?:www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_+.~#?&/=]*)))",
+        std::regex::icase
+    );
+
+    std::smatch match;
+    if (std::regex_search(text, match, url_regex)) {
+        return match.str(0);
+    }
+    return {};
 }

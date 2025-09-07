@@ -21,7 +21,16 @@ struct RowTable
 
     auto GetRow(size_t idx)
     {
+        if(idx >= data.size()) return std::vector<std::string>();
         return data[idx];
+    }
+
+    std::string GetJoinedRow(size_t idx, std::string_view sep = " ")
+    {
+        if(idx >= data.size()) return "";
+        return data[idx]
+            | std::views::join_with(sep)
+            | std::ranges::to<std::string>();
     }
 
     auto Erase(size_t idx)
