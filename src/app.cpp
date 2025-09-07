@@ -138,8 +138,22 @@ Component App::CreateMenu()
 {
     auto menuOption = MenuOption();
     menuOption.focused_entry = &controls.focused;
-    auto menu = Menu(&controls.menuEntries, &controls.selected, menuOption)
-        | vscroll_indicator | frame;
+    auto menu = Menu(&controls.menuEntries, &controls.selected, menuOption) | vscroll_indicator | frame;
+    menu |= CatchEvent([&](Event event) {
+        if(controls.selected == 0 
+            && (event == Event::k || event == Event::ArrowUp))
+        {
+            return true;
+        }
+
+        if(controls.selected == controls.menuEntries.size() - 1 
+            && (event == Event::j || event == Event::ArrowDown))
+        {
+            return true;
+        }
+
+        return false;
+    });
     return menu;
 }
 
