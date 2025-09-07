@@ -180,6 +180,7 @@ Component App::CreateStatusBar()
             // Copy back the reordered views into original vectors
             std::ranges::copy(sortedLines, controls.lines.data.begin());
             controls.menuEntries = controls.lines.GetMenuEntries(controls.viewTemplate);
+            controls.selector = 0;
         });
     };
 
