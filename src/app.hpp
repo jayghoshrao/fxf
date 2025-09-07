@@ -17,7 +17,7 @@ public:
         RowTable lines;
         char delimiter = '|';
         std::vector<std::string> menuEntries;
-        int selector = 0;
+        int selected = 0;
         ControlHandle commandDialog;
         ControlHandle display;
         ControlHandle searchDialog;

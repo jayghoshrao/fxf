@@ -12,7 +12,7 @@ void App::Load(const std::string& filename, char delimiter)
     controls.delimiter = delimiter;
     controls.lines.Load(filename, controls.delimiter);
     this->ApplyViewTemplate("{}");
-    controls.selector = 0; // TODO:
+    controls.selected = 0; // TODO:
 }
 
 void App::CreateGUI()
@@ -137,7 +137,7 @@ Component App::CreateCommandDialog()
 Component App::CreateMenu()
 {
     auto menuOption = MenuOption();
-    auto menu = Menu(&controls.menuEntries, &controls.selector, menuOption)
+    auto menu = Menu(&controls.menuEntries, &controls.selected, menuOption)
         | vscroll_indicator | frame;
     return menu;
 }
@@ -180,7 +180,7 @@ Component App::CreateStatusBar()
             // Copy back the reordered views into original vectors
             std::ranges::copy(sortedLines, controls.lines.data.begin());
             controls.menuEntries = controls.lines.GetMenuEntries(controls.viewTemplate);
-            controls.selector = 0;
+            controls.selected = 0;
         });
     };
 

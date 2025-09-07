@@ -84,7 +84,7 @@ void CommandRegistry::RegisterDefaultCommands()
     });
 
     commands.Register("delete", [&](const std::vector<std::string>& args) {
-        app.controls.lines.Erase(app.controls.selector);
+        app.controls.lines.Erase(app.controls.selected);
         app.ReapplyViewTemplate();
         return true;
     });
