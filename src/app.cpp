@@ -164,6 +164,7 @@ Component App::CreateStatusBar()
     searchInputOption.placeholder = "Press / to fuzzy search";
     searchInputOption.on_enter = [&]{
         controls.screen.Post([&]{
+            controls.focused = 0;
             this->ResetFocus();
         });
     };
