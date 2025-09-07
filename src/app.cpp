@@ -37,6 +37,13 @@ void App::CreateGUI()
             }
         }
 
+        if(event == Event::CtrlF) { return components.menu->OnEvent(Event::PageDown); }
+        if(event == Event::CtrlB) { return components.menu->OnEvent(Event::PageUp); }
+
+        // TODO: half page scrolls
+        if(event == Event::CtrlD) { return components.menu->OnEvent(Event::PageDown); }
+        if(event == Event::CtrlU) { return components.menu->OnEvent(Event::PageUp); }
+
         got_g = false;
         return false;
     });
