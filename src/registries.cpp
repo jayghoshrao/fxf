@@ -2,6 +2,7 @@
 #include "app.hpp"
 
 #include <filesystem>
+#include <numeric>
 
 bool CommandRegistry::Execute(const std::string& line) const {
     App& app = App::Instance();
@@ -157,9 +158,19 @@ bool KeybindRegistry::Execute(ftxui::Event event) const{
         Command([&](const std::vector<std::string>&){
             App& app = App::Instance();
             app.cache.menuEntries = app.controls.menuEntries;
-            app.cache.lines = app.controls.lines; // TODO:potentially wasteful?
+            app.cache.lines = app.controls.lines;
             app.FocusSearch();
             return true;
         })
     );
+
+    auto vec0to9str = std::views::iota(0,10) 
+        | std::views::transform([&](int i){return std::to_string(i);});
+    for(const auto& numStr : vec0to9str)
+    {
+        keybinds.Register(
+            ftxui::Event::Character(numStr),
+            Command("show " + numStr, Command::ExecutionPolicy::Alias)
+        );
+    }
 }
