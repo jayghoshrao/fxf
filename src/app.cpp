@@ -230,7 +230,16 @@ Component App::CreateStatusBar()
         return text(controls.searchPrompt);
     });
 
-    auto barTabs = Container::Horizontal({components.searchPrompt, searchInput}) | size(HEIGHT, EQUAL,1);
+    auto currentViewTemplate = Renderer([&]{
+        return text(controls.viewTemplate);
+    });
+
+    auto debug = Renderer([&]{
+        auto divider = state.debug.empty() ? "" : " | "; 
+        return text(divider + state.debug);
+    });
+
+    auto barTabs = Container::Horizontal({components.searchPrompt, searchInput, currentViewTemplate, debug}) | size(HEIGHT, EQUAL,1);
 
     components.searchInput = searchInput;
     return barTabs;
