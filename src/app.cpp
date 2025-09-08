@@ -174,25 +174,23 @@ Component App::CreateStatusBar()
 {
     auto searchInputOption = InputOption::Default();
     searchInputOption.multiline = false;
-    searchInputOption.placeholder = "Press / to fuzzy search";
+    controls.searchDialog.placeholder = "Press / to fuzzy search";
     searchInputOption.on_enter = [&]{
         screen.Post([&]{
             controls.focused = 0;
+            if(controls.searchDialog.string.empty())
+            {
+                controls.searchDialog.placeholder = "Press / to fuzzy search";
+            }
             this->ResetFocus();
         });
     };
 
     searchInputOption.transform = [&](InputState state) {
-
         state.element |= color(Color::White);
-
-        if (state.is_placeholder) {
-            state.element |= dim;
-        }
-
+        if(state.is_placeholder) { state.element |= dim; }
         return state.element;
     };
-
 
     searchInputOption.on_change = [&]{
         screen.Post([&]{
@@ -214,11 +212,12 @@ Component App::CreateStatusBar()
     };
 
 
-    auto searchInput = Input(&controls.searchDialog.string, &controls.searchDialog.string, searchInputOption) ;
+    auto searchInput = Input(&controls.searchDialog.string, &controls.searchDialog.placeholder, searchInputOption) ;
     searchInput |= CatchEvent([&](Event event){
         if(event == Event::Escape)
         {
             controls.searchDialog.string = "";
+            controls.searchDialog.placeholder = "Press / to fuzzy search";
             ResetFocus();
             return true;
         }

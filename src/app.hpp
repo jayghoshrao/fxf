@@ -10,6 +10,7 @@ public:
     ftxui::ScreenInteractive screen = ftxui::ScreenInteractive::Fullscreen();
 
     struct ControlHandle {
+        std::string placeholder = "";
         std::string string = "";
         bool isActive = false;
     };

@@ -169,6 +169,7 @@ bool KeybindRegistry::Execute(ftxui::Event event) const{
             App& app = App::Instance();
             app.cache.menuEntries = app.controls.menuEntries;
             app.cache.lines = app.state.lines;
+            app.controls.searchDialog.placeholder = "Type to fuzzy search";
             app.FocusSearch();
             return true;
         })
