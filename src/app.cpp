@@ -86,6 +86,7 @@ void App::ResetFocus()
 {
     controls.commandDialog.isActive = false;
     controls.searchDialog.isActive = false;
+    controls.searchPrompt = "< ";
     components.menu->TakeFocus();
 }
 
@@ -93,6 +94,7 @@ void App::FocusSearch()
 {
     controls.commandDialog.isActive = false;
     controls.searchDialog.isActive = true;
+    controls.searchPrompt = "> ";
     components.searchInput->TakeFocus();
 }
 
@@ -224,7 +226,7 @@ Component App::CreateStatusBar()
         return false;
     });
 
-    controls.searchPrompt = "> ";
+    controls.searchPrompt = "< ";
     components.searchPrompt = Renderer([&]{
         return text(controls.searchPrompt);
     });
