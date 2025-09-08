@@ -9,7 +9,7 @@ bool Command::Execute(std::string extraArgs /*= ""*/) const {
     std::string command = m_command + ' '  + extraArgs;
 
     auto& app = App::Instance();
-    auto commandstr = app.controls.lines.Substitute(command, app.controls.selected);
+    auto commandstr = app.state.lines.Substitute(command, app.controls.selected);
 
     if(m_nativeCommandExecutor)
     {

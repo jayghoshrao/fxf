@@ -17,11 +17,11 @@ int main(int argc, char* argv[]) {
 
     CLI11_PARSE(args, argc, argv);
 
-    app.Load(filename, delimiter);
     app.CreateGUI();
+    app.Load(filename, delimiter);
     app.Loop();
 
-    std::cout << app.controls.debug << std::endl;
+    std::cout << app.state.debug << std::endl;
 
     return EXIT_SUCCESS;
 }

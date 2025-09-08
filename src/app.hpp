@@ -7,22 +7,26 @@
 class App
 {
 public:
+    ftxui::ScreenInteractive screen = ftxui::ScreenInteractive::Fullscreen();
+
     struct ControlHandle {
         std::string string = "";
         bool isActive = false;
     };
 
-    struct Controls {
-        ftxui::ScreenInteractive screen = ftxui::ScreenInteractive::Fullscreen();
+    struct State {
         RowTable lines;
         char delimiter = '|';
+        std::string debug = "";
+    } state;
+
+    struct Controls {
         std::vector<std::string> menuEntries;
         int selected = 0;
         int focused = 0;
         ControlHandle commandDialog;
         ControlHandle display;
         ControlHandle searchDialog;
-        std::string debug = "";
         std::string viewTemplate = "{}";
         std::string searchPrompt = "> ";
     } controls;

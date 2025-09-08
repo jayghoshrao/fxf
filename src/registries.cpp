@@ -43,7 +43,7 @@ void CommandRegistry::RegisterDefaultCommands()
     });
 
     commands.Register("quit", [&](const std::vector<std::string>& args) {
-        app.controls.screen.ExitLoopClosure()();
+        app.screen.ExitLoopClosure()();
         return true;
     });
 
@@ -85,7 +85,7 @@ void CommandRegistry::RegisterDefaultCommands()
     });
 
     commands.Register("delete", [&](const std::vector<std::string>& args) {
-        app.controls.lines.Erase(app.controls.selected);
+        app.state.lines.Erase(app.controls.selected);
         app.ReapplyViewTemplate();
         return true;
     });
@@ -127,7 +127,7 @@ void CommandRegistry::RegisterDefaultCommands()
     });
 
     commands.Register("open", [&](const std::vector<std::string>& args){
-        auto str = app.controls.lines.GetJoinedRow(app.controls.selected);
+        auto str = app.state.lines.GetJoinedRow(app.controls.selected);
         if(const std::string& url = ExtractFirstURL(str); !url.empty())
         {
             Command("firefox" , Command::ExecutionPolicy::Silent).Execute(url);
@@ -168,7 +168,7 @@ bool KeybindRegistry::Execute(ftxui::Event event) const{
         Command([&](const std::vector<std::string>&){
             App& app = App::Instance();
             app.cache.menuEntries = app.controls.menuEntries;
-            app.cache.lines = app.controls.lines;
+            app.cache.lines = app.state.lines;
             app.FocusSearch();
             return true;
         })

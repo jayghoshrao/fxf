@@ -9,8 +9,8 @@ using namespace ftxui;
 
 void App::Load(const std::string& filename, char delimiter)
 {
-    controls.delimiter = delimiter;
-    controls.lines.Load(filename, controls.delimiter);
+    state.delimiter = delimiter;
+    state.lines.Load(filename, state.delimiter);
     this->ApplyViewTemplate("{}");
     controls.selected = 0; // TODO:
 }
@@ -79,7 +79,7 @@ void App::CreateGUI()
 void App::Loop()
 {
     components.menu->TakeFocus();
-    controls.screen.Loop(components.mainEventHandler);
+    screen.Loop(components.mainEventHandler);
 }
 
 void App::ResetFocus()
@@ -102,7 +102,7 @@ Component App::CreateCommandDialog()
     auto commandInputOption = InputOption::Default();
     commandInputOption.multiline = false;
     commandInputOption.on_enter = [&]{
-        controls.screen.Post([&]{
+        screen.Post([&]{
             commands.Execute(controls.commandDialog.string);
             controls.commandDialog.isActive = false;
             controls.commandDialog.string = "";
@@ -176,7 +176,7 @@ Component App::CreateStatusBar()
     searchInputOption.multiline = false;
     searchInputOption.placeholder = "Press / to fuzzy search";
     searchInputOption.on_enter = [&]{
-        controls.screen.Post([&]{
+        screen.Post([&]{
             controls.focused = 0;
             this->ResetFocus();
         });
@@ -195,7 +195,7 @@ Component App::CreateStatusBar()
 
 
     searchInputOption.on_change = [&]{
-        controls.screen.Post([&]{
+        screen.Post([&]{
             auto fuzzyResults = extract(controls.searchDialog.string, cache.menuEntries, 0.0);
             std::vector<size_t> indices(fuzzyResults.size());
             std::ranges::iota(indices, 0);
@@ -207,8 +207,8 @@ Component App::CreateStatusBar()
             auto sortedLines = indices | std::views::transform([&](size_t i) { return cache.lines[i]; });
 
             // Copy back the reordered views into original vectors
-            std::ranges::copy(sortedLines, controls.lines.data.begin());
-            controls.menuEntries = controls.lines.GetMenuEntries(controls.viewTemplate);
+            std::ranges::copy(sortedLines, state.lines.data.begin());
+            controls.menuEntries = state.lines.GetMenuEntries(controls.viewTemplate);
             controls.selected = 0;
         });
     };
@@ -239,10 +239,10 @@ Component App::CreateStatusBar()
 void App::ApplyViewTemplate(std::string_view viewTemplate)
 {
     controls.viewTemplate = viewTemplate;
-    controls.menuEntries = controls.lines.GetMenuEntries(controls.viewTemplate);
+    controls.menuEntries = state.lines.GetMenuEntries(controls.viewTemplate);
 }
 
 void App::ReapplyViewTemplate()
 {
-    controls.menuEntries = controls.lines.GetMenuEntries(controls.viewTemplate);
+    controls.menuEntries = state.lines.GetMenuEntries(controls.viewTemplate);
 }
