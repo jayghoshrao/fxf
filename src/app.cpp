@@ -132,8 +132,10 @@ Component App::CreateCommandDialog()
         return false;
     });
     return Renderer(commandInput, [=]{ return
-        commandInput->Render() | size(WIDTH, EQUAL, Terminal::Size().dimx * 0.5)
-        ;}) | border ;
+        hbox({
+            text(":"),
+            commandInput->Render() | size(WIDTH, EQUAL, Terminal::Size().dimx * 0.5) });
+    }) | border ;
 }
 
 Component App::CreateMenu()
