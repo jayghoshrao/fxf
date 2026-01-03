@@ -3,3 +3,4 @@ compile_commands.json
 .tasks
 .cache/
 lists/
+test.list
