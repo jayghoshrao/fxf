@@ -6,7 +6,7 @@ build:
 	cmake -S . -B build && cmake --build build
 
 run: build
-	@./build/fxf pocket.list
+	@./build/fxf test.list
 
 clean:
 	@rm -rf build
