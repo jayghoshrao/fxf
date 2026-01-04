@@ -15,6 +15,9 @@ std::string trim(std::string_view str);
 std::vector<std::string> ExtractURLs(const std::string& text);
 std::string ExtractFirstURL(const std::string& text);
 
+std::vector<std::string> SplitCommand(std::string_view cmd);
+int ExecNoShell(std::string_view cmd);
+
 template <typename Sentence1,
 typename Iterable, typename Sentence2 = typename Iterable::value_type>
 std::vector<std::pair<Sentence2, double>>

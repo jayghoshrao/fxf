@@ -1,5 +1,6 @@
 #include "command.hpp"
 #include "app.hpp"
+#include "utils.hpp"
 
 /* static */
 const Command Command::Null([](std::vector<std::string>){return false;});
@@ -12,14 +13,7 @@ bool Command::Execute(std::string_view extraArgs /*= ""*/) const {
 
     if(m_nativeCommandExecutor)
     {
-        std::istringstream iss(command);
-        std::string cmd;
-        std::vector<std::string> args;
-
-        while(iss >> cmd)
-        {
-            args.push_back(cmd);
-        }
+        auto args = SplitCommand(command);
         return m_nativeCommandExecutor(args);
     }
 
@@ -32,8 +26,8 @@ bool Command::Execute(std::string_view extraArgs /*= ""*/) const {
             }
         case ExecutionPolicy::Silent:
             {
-                int err = std::system(commandstr.c_str());
-                return err == 0 ? true : false;
+                int err = ExecNoShell(commandstr);
+                return err == 0;
             }
         case ExecutionPolicy::Modal:
             {

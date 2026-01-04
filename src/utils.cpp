@@ -4,6 +4,8 @@
 #include <memory>
 #include <numeric>
 #include <regex>
+#include <unistd.h>
+#include <sys/wait.h>
 
 using namespace ftxui;
 
@@ -146,4 +148,80 @@ std::string ExtractFirstURL(const std::string& text) {
         return match.str(0);
     }
     return {};
+}
+
+std::vector<std::string> SplitCommand(std::string_view cmd) {
+    std::vector<std::string> args;
+    std::string current;
+    bool in_single_quote = false;
+    bool in_double_quote = false;
+    bool escaped = false;
+
+    for (char c : cmd) {
+        if (escaped) {
+            current += c;
+            escaped = false;
+            continue;
+        }
+
+        if (c == '\\' && !in_single_quote) {
+            escaped = true;
+            continue;
+        }
+
+        if (c == '\'' && !in_double_quote) {
+            in_single_quote = !in_single_quote;
+            continue;
+        }
+
+        if (c == '"' && !in_single_quote) {
+            in_double_quote = !in_double_quote;
+            continue;
+        }
+
+        if (std::isspace(c) && !in_single_quote && !in_double_quote) {
+            if (!current.empty()) {
+                args.push_back(std::move(current));
+                current.clear();
+            }
+            continue;
+        }
+
+        current += c;
+    }
+
+    if (!current.empty()) {
+        args.push_back(std::move(current));
+    }
+
+    return args;
+}
+
+int ExecNoShell(std::string_view cmd) {
+    auto args = SplitCommand(cmd);
+    if (args.empty()) return -1;
+
+    std::vector<char*> argv;
+    for (auto& arg : args) {
+        argv.push_back(arg.data());
+    }
+    argv.push_back(nullptr);
+
+    pid_t pid = fork();
+    if (pid == -1) {
+        return -1;
+    }
+
+    if (pid == 0) {
+        execvp(argv[0], argv.data());
+        _exit(127);
+    }
+
+    int status;
+    waitpid(pid, &status, 0);
+
+    if (WIFEXITED(status)) {
+        return WEXITSTATUS(status);
+    }
+    return -1;
 }
