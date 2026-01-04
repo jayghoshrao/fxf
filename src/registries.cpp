@@ -130,7 +130,7 @@ void CommandRegistry::RegisterDefaultCommands()
         auto str = app.state.lines.GetJoinedRow(app.controls.selected);
         if(const std::string& url = ExtractFirstURL(str); !url.empty())
         {
-            Command("firefox" , Command::ExecutionPolicy::Silent).Execute(url);
+            Command("xdg-open" , Command::ExecutionPolicy::Silent).Execute(url);
             return true;
         }
         return false;
