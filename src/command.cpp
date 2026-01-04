@@ -1,5 +1,4 @@
 #include "command.hpp"
-#include "registries.hpp"
 #include "app.hpp"
 
 /* static */
@@ -29,7 +28,7 @@ bool Command::Execute(std::string_view extraArgs /*= ""*/) const {
     {
         case ExecutionPolicy::Alias:
             {
-                return CommandRegistry::Instance().Execute(commandstr);
+                return app.commands.Execute(commandstr);
             }
         case ExecutionPolicy::Silent:
             {

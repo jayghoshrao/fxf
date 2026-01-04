@@ -7,23 +7,20 @@
 #include "command.hpp"
 #include <ftxui/component/event.hpp>
 
+class App;
+
 class CommandRegistry {
 public:
     using CommandFn = std::function<bool(const std::vector<std::string>&)>;
 
-    static CommandRegistry& Instance()
-    {
-        static CommandRegistry instance;
-        return instance;
-    }
+    explicit CommandRegistry(App& app) : m_app(app) {}
 
-    static void RegisterDefaultCommands();
-
-    CommandRegistry() = default;
     CommandRegistry(const CommandRegistry&) = delete;
     CommandRegistry& operator=(const CommandRegistry&) = delete;
     CommandRegistry(CommandRegistry&&) = delete;
     CommandRegistry& operator=(CommandRegistry&&) = delete;
+
+    void RegisterDefaultCommands();
 
     void Register(const std::string& name, CommandFn&& fn) {
         commands_.emplace(name, std::move(fn));
@@ -46,23 +43,20 @@ public:
     }
 
 private:
+    App& m_app;
     std::unordered_map<std::string, Command> commands_;
 };
 
 class KeybindRegistry {
 public:
+    explicit KeybindRegistry(App& app) : m_app(app) {}
 
-    static KeybindRegistry& Instance()
-    {
-        static KeybindRegistry instance;
-        return instance;
-    }
-
-    KeybindRegistry() = default;
     KeybindRegistry(const KeybindRegistry&) = delete;
     KeybindRegistry& operator=(const KeybindRegistry&) = delete;
     KeybindRegistry(KeybindRegistry&&) = delete;
     KeybindRegistry& operator=(KeybindRegistry&&) = delete;
+
+    void RegisterDefaultKeybinds();
 
     void Register(ftxui::Event event, Command&& command) {
         map_.emplace(event, command);
@@ -70,9 +64,8 @@ public:
 
     bool Execute(ftxui::Event event) const;
 
-    static void RegisterDefaultKeybinds();
-
 private:
+    App& m_app;
     std::map<ftxui::Event, Command> map_;
 };
 

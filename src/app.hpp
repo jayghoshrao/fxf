@@ -3,6 +3,7 @@
 #include <ftxui/component/screen_interactive.hpp>
 
 #include "RowTable.hpp"
+#include "registries.hpp"
 
 class App
 {
@@ -53,6 +54,9 @@ public:
         static App instance;
         return instance;
     }
+
+    CommandRegistry commands{*this};
+    KeybindRegistry keybinds{*this};
 
     void Load(const std::string& filename, char delimiter);
     void CreateGUI();

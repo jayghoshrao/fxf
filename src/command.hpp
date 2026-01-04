@@ -8,12 +8,7 @@ class Command {
     using CommandFn = std::function<bool(const std::vector<std::string>&)>;
 
 public:
-    enum class ExecutionPolicy {
-        Silent,
-        Modal,
-        Alias
-    };
-
+    enum class ExecutionPolicy { Silent, Modal, Alias };
 
 private:
     ExecutionPolicy m_execPolicy;

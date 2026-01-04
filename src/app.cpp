@@ -62,11 +62,10 @@ void App::CreateGUI()
 
     components.mainContainer = components.baseContainer | Modal(components.commandDialog, &controls.commandDialog.isActive);
 
-    CommandRegistry::RegisterDefaultCommands();
-    KeybindRegistry::RegisterDefaultKeybinds();
-    KeybindRegistry& keybinds = KeybindRegistry::Instance();
+    commands.RegisterDefaultCommands();
+    keybinds.RegisterDefaultKeybinds();
 
-    components.mainEventHandler = CatchEvent(components.mainContainer, [&](Event event){
+    components.mainEventHandler = CatchEvent(components.mainContainer, [this](Event event){
         if(controls.commandDialog.isActive || controls.searchDialog.isActive)
         {
             return false;
@@ -100,11 +99,10 @@ void App::FocusSearch()
 
 Component App::CreateCommandDialog()
 {
-    CommandRegistry& commands = CommandRegistry::Instance();
     auto commandInputOption = InputOption::Default();
     commandInputOption.multiline = false;
-    commandInputOption.on_enter = [&]{
-        screen.Post([&]{
+    commandInputOption.on_enter = [this]{
+        screen.Post([this]{
             commands.Execute(controls.commandDialog.string);
             controls.commandDialog.isActive = false;
             controls.commandDialog.string = "";

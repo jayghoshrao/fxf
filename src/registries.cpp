@@ -5,7 +5,6 @@
 #include <numeric>
 
 bool CommandRegistry::Execute(const std::string& line) const {
-    App& app = App::Instance();
     std::istringstream iss(line);
     std::string cmd;
     iss >> cmd;
@@ -24,11 +23,7 @@ bool CommandRegistry::Execute(const std::string& line) const {
 
 void CommandRegistry::RegisterDefaultCommands()
 {
-    App& app = App::Instance();
-    CommandRegistry& commands = CommandRegistry::Instance();
-    KeybindRegistry& keybinds = KeybindRegistry::Instance();
-
-    commands.Register("read", [&](const std::vector<std::string>& args) {
+    Register("read", [this](const std::vector<std::string>& args) {
         if(args.size() != 2)
             return false;
 
@@ -38,19 +33,19 @@ void CommandRegistry::RegisterDefaultCommands()
         if(!std::filesystem::is_regular_file(filename))
             return false;
 
-        app.Load(filename, delimiter[0]);
+        m_app.Load(filename, delimiter[0]);
         return true;
     });
 
-    commands.Register("quit", [&](const std::vector<std::string>& args) {
-        app.screen.ExitLoopClosure()();
+    Register("quit", [this](const std::vector<std::string>& args) {
+        m_app.screen.ExitLoopClosure()();
         return true;
     });
 
-    commands.Register("view", [&](const std::vector<std::string>& args) {
+    Register("view", [this](const std::vector<std::string>& args) {
         if(args.size() < 1)
         {
-            app.ApplyViewTemplate("{}");
+            m_app.ApplyViewTemplate("{}");
             return true;
         }
 
@@ -61,11 +56,11 @@ void CommandRegistry::RegisterDefaultCommands()
             viewTemplate += args[i];
         }
 
-        app.ApplyViewTemplate(viewTemplate);
+        m_app.ApplyViewTemplate(viewTemplate);
         return true;
     });
 
-    commands.Register("bind", [&](const std::vector<std::string>& args){
+    Register("bind", [this](const std::vector<std::string>& args){
         if(args.size() < 3)
         {
             return false;
@@ -80,17 +75,17 @@ void CommandRegistry::RegisterDefaultCommands()
             cmdTemplate += args[i];
         }
 
-        keybinds.Register(ftxui::Event::Character(key[0]), Command(cmdTemplate, Command::StringToExecutionPolicy(cmdType)));
+        m_app.keybinds.Register(ftxui::Event::Character(key[0]), Command(cmdTemplate, Command::StringToExecutionPolicy(cmdType)));
         return true;
     });
 
-    commands.Register("delete", [&](const std::vector<std::string>& args) {
-        app.state.lines.Erase(app.controls.selected);
-        app.ReapplyViewTemplate();
+    Register("delete", [this](const std::vector<std::string>& args) {
+        m_app.state.lines.Erase(m_app.controls.selected);
+        m_app.ReapplyViewTemplate();
         return true;
     });
 
-    commands.Register("command", [&](const std::vector<std::string>& args){
+    Register("command", [this](const std::vector<std::string>& args){
             if(args.size() < 3) return false;
 
             std::string name = args[0];
@@ -102,22 +97,22 @@ void CommandRegistry::RegisterDefaultCommands()
                 cmdTemplate += args[i];
             }
 
-            commands.Register(name, Command(cmdTemplate, Command::StringToExecutionPolicy(cmdType)));
+            m_app.commands.Register(name, Command(cmdTemplate, Command::StringToExecutionPolicy(cmdType)));
             return true;
             });
 
-    commands.Register("cmd", Command(commands.Get("command")));
+    Register("cmd", Command(Get("command")));
 
-    commands.Register("show", [&](const std::vector<std::string>& args){
+    Register("show", [this](const std::vector<std::string>& args){
         if(args.size() < 1)
         {
-            app.ApplyViewTemplate("{}");
+            m_app.ApplyViewTemplate("{}");
             return true;
         }
 
         try {
             int idx = std::stoi(args[0]);
-            app.ApplyViewTemplate("{" + args[0] +  "}");
+            m_app.ApplyViewTemplate("{" + args[0] +  "}");
             return true;
         } catch (const std::exception& e) {
             return false;
@@ -126,8 +121,8 @@ void CommandRegistry::RegisterDefaultCommands()
         return false;
     });
 
-    commands.Register("open", [&](const std::vector<std::string>& args){
-        auto str = app.state.lines.GetJoinedRow(app.controls.selected);
+    Register("open", [this](const std::vector<std::string>& args){
+        auto str = m_app.state.lines.GetJoinedRow(m_app.controls.selected);
         if(const std::string& url = ExtractFirstURL(str); !url.empty())
         {
             Command("xdg-open" , Command::ExecutionPolicy::Silent).Execute(url);
@@ -146,51 +141,48 @@ bool KeybindRegistry::Execute(ftxui::Event event) const{
     return false;
 }
 
-/*static*/ void KeybindRegistry::RegisterDefaultKeybinds()
+void KeybindRegistry::RegisterDefaultKeybinds()
 {
-    KeybindRegistry& keybinds = KeybindRegistry::Instance();
-    keybinds.Register(
+    Register(
         ftxui::Event::q,
         Command("quit", Command::ExecutionPolicy::Alias)
     );
 
-    keybinds.Register(
+    Register(
         ftxui::Event::Character(':'),
-        Command([&](const std::vector<std::string>&){
-            App& app = App::Instance();
-            app.controls.commandDialog.isActive = true;
+        Command([this](const std::vector<std::string>&){
+            m_app.controls.commandDialog.isActive = true;
             return true;
         })
     );
 
-    keybinds.Register(
+    Register(
         ftxui::Event::Character('/'),
-        Command([&](const std::vector<std::string>&){
-            App& app = App::Instance();
-            app.cache.menuEntries = app.controls.menuEntries;
-            app.cache.lines = app.state.lines;
-            app.controls.searchDialog.placeholder = "Type to fuzzy search";
-            app.FocusSearch();
+        Command([this](const std::vector<std::string>&){
+            m_app.cache.menuEntries = m_app.controls.menuEntries;
+            m_app.cache.lines = m_app.state.lines;
+            m_app.controls.searchDialog.placeholder = "Type to fuzzy search";
+            m_app.FocusSearch();
             return true;
         })
     );
 
-    auto vec0to9str = std::views::iota(0,10) 
-        | std::views::transform([&](int i){return std::to_string(i);});
+    auto vec0to9str = std::views::iota(0,10)
+        | std::views::transform([](int i){return std::to_string(i);});
     for(const auto& numStr : vec0to9str)
     {
-        keybinds.Register(
+        Register(
             ftxui::Event::Character(numStr),
             Command("show " + numStr, Command::ExecutionPolicy::Alias)
         );
     }
 
-    keybinds.Register(
+    Register(
         ftxui::Event::Character('='),
         Command("show", Command::ExecutionPolicy::Alias)
     );
 
-    keybinds.Register(
+    Register(
         ftxui::Event::o,
         Command("open", Command::ExecutionPolicy::Alias)
     );
