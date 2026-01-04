@@ -10,9 +10,13 @@ using namespace ftxui;
 void App::Load(const std::string& filename, char delimiter)
 {
     state.delimiter = delimiter;
-    state.lines.Load(filename, state.delimiter);
+    auto result = state.lines.Load(filename, state.delimiter);
+    if (!result) {
+        state.debug = result.error();
+        return;
+    }
     this->ApplyViewTemplate("{}");
-    controls.selected = 0; // TODO:
+    controls.selected = 0;
 }
 
 void App::CreateGUI()

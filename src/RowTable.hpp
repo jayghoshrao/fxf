@@ -3,6 +3,7 @@
 #include <vector>
 #include <ranges>
 #include <fstream>
+#include <expected>
 
 #include "utils.hpp"
 
@@ -40,20 +41,20 @@ struct RowTable
         data.erase(data.begin() + idx);
     }
 
-    void Load(std::string_view filename, char delimiter)
+    std::expected<void, std::string> Load(std::string_view filename, char delimiter)
     {
         data.clear();
         std::ifstream file(std::string{filename});
         if(!file)
         {
-            return;
+            return std::unexpected("Failed to open file: " + std::string{filename});
         }
 
-        for(std::string line; std::getline(file,line);)
+        for(std::string line; std::getline(file, line);)
         {
             this->AddLine(line, delimiter);
         }
-        return;
+        return {};
     }
 
     std::vector<std::string> GetMenuEntries(std::string_view viewTemplate) const
