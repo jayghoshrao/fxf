@@ -43,6 +43,15 @@ FetchContent_Declare(rapidfuzz
   GIT_TAG main)
 FetchContent_MakeAvailable(rapidfuzz)
 
+# --- Fetch Catch2 -------------------------------------------------------------
+FetchContent_Declare(
+  Catch2
+  GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+  GIT_TAG v3.5.2
+  GIT_SHALLOW TRUE
+)
+FetchContent_MakeAvailable(Catch2)
+
 # ------------------------------------------------------------------------------
 
 add_executable(fxf src/utils.cpp src/command.cpp src/registries.cpp src/app.cpp src/main.cpp)
@@ -65,3 +74,22 @@ if (EMSCRIPTEN)
     configure_file("src/${file}" ${file})
   endforeach(file)
 endif()
+
+# --- Tests --------------------------------------------------------------------
+enable_testing()
+
+add_executable(tests
+  tests/test_utils.cpp
+  tests/test_rowtable.cpp
+  src/utils.cpp
+)
+target_include_directories(tests PRIVATE src)
+target_link_libraries(tests
+  PRIVATE Catch2::Catch2WithMain
+  PRIVATE ftxui::component
+  PRIVATE rapidfuzz::rapidfuzz
+)
+
+include(CTest)
+include(Catch)
+catch_discover_tests(tests)
