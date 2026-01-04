@@ -124,10 +124,12 @@ std::string trim(std::string_view str) {
 }
 
 std::vector<std::string> ExtractURLs(const std::string& text) {
-    std::vector<std::string> urls;
-    std::regex url_regex(R"((https?://(?:www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_+.~#?&/=]*)))",
-                         std::regex::icase);
+    static const std::regex url_regex(
+        R"((https?://(?:www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_+.~#?&/=]*)))",
+        std::regex::icase
+    );
 
+    std::vector<std::string> urls;
     auto begin = std::sregex_iterator(text.begin(), text.end(), url_regex);
     auto end = std::sregex_iterator();
 
