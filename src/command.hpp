@@ -1,15 +1,8 @@
 #pragma once
 #include <string>
 #include <string_view>
-#include <unordered_map>
 #include <functional>
 #include <vector>
-#include <iostream>
-#include <sstream>
-
-#include "app.hpp"
-#include "utils.hpp"
-
 
 class Command {
     using CommandFn = std::function<bool(const std::vector<std::string>&)>;

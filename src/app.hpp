@@ -19,7 +19,7 @@ public:
         RowTable lines;
         char delimiter = '|';
         std::string debug = "";
-    } state;
+    };
 
     struct Controls {
         std::vector<std::string> menuEntries;
@@ -30,12 +30,23 @@ public:
         ControlHandle searchDialog;
         std::string viewTemplate = "{}";
         std::string searchPrompt = "> ";
-    } controls;
+    };
 
     struct Cache {
         std::vector<std::string> menuEntries;
         RowTable lines;
-    } cache;
+    };
+
+    struct ComponentChildren {
+        ftxui::Component menu{nullptr};
+        ftxui::Component statusBar{nullptr};
+        ftxui::Component baseContainer{nullptr};
+        ftxui::Component mainContainer{nullptr};
+        ftxui::Component commandDialog{nullptr};
+        ftxui::Component mainEventHandler{nullptr};
+        ftxui::Component searchInput{nullptr};
+        ftxui::Component searchPrompt{nullptr};
+    }; 
 
 public:
     static App& Instance() {
@@ -52,18 +63,16 @@ public:
     void ReapplyViewTemplate();
 
 private:
-    struct ComponentChildren {
-        ftxui::Component menu{nullptr};
-        ftxui::Component statusBar{nullptr};
-        ftxui::Component baseContainer{nullptr};
-        ftxui::Component mainContainer{nullptr};
-        ftxui::Component commandDialog{nullptr};
-        ftxui::Component mainEventHandler{nullptr};
-        ftxui::Component searchInput{nullptr};
-        ftxui::Component searchPrompt{nullptr};
-    } components;
-
     ftxui::Component CreateMenu();
     ftxui::Component CreateStatusBar();
     ftxui::Component CreateCommandDialog();
+
+public:
+    State state;
+    Controls controls;
+    Cache cache;
+
+private:
+    ComponentChildren components;
+
 };

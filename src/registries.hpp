@@ -5,6 +5,7 @@
 #include <functional>
 #include <map>
 #include "command.hpp"
+#include <ftxui/component/event.hpp>
 
 class CommandRegistry {
     public:
