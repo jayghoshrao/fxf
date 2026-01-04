@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <string_view>
 #include <unordered_map>
 #include <functional>
 #include <vector>
@@ -39,9 +40,9 @@ public:
     {
     }
 
-    bool Execute(std::string extraArgs = "") const;
+    bool Execute(std::string_view extraArgs = "") const;
 
-    static Command::ExecutionPolicy StringToExecutionPolicy(std::string strPolicy);
+    static Command::ExecutionPolicy StringToExecutionPolicy(std::string_view strPolicy);
 };
 
 

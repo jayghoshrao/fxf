@@ -5,8 +5,8 @@
 /* static */
 const Command Command::Null([](std::vector<std::string>){return false;});
 
-bool Command::Execute(std::string extraArgs /*= ""*/) const {
-    std::string command = m_command + ' '  + extraArgs;
+bool Command::Execute(std::string_view extraArgs /*= ""*/) const {
+    std::string command = m_command + ' '  + std::string{extraArgs};
 
     auto& app = App::Instance();
     auto commandstr = app.state.lines.Substitute(command, app.controls.selected);
@@ -49,7 +49,7 @@ bool Command::Execute(std::string extraArgs /*= ""*/) const {
 }
 
 /* static */
-Command::ExecutionPolicy Command::StringToExecutionPolicy(std::string strPolicy)
+Command::ExecutionPolicy Command::StringToExecutionPolicy(std::string_view strPolicy)
 {
     auto strPolicyTrimmed = trim(strPolicy);
 

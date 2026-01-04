@@ -10,7 +10,7 @@ std::string EventToString(const ftxui::Event& event);
 
 std::string ExecAndCapture(const std::string& cmd);
 std::string substitute_template(std::string_view template_str, const std::vector<std::string>& data);
-std::string trim(const std::string& str);
+std::string trim(std::string_view str);
 
 std::vector<std::string> ExtractURLs(const std::string& text);
 std::string ExtractFirstURL(const std::string& text);

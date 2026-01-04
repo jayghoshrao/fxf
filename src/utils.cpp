@@ -113,12 +113,12 @@ std::string substitute_template(std::string_view template_str, const std::vector
     return result;
 }
 
-std::string trim(const std::string& str) {
+std::string trim(std::string_view str) {
     const auto first = str.find_first_not_of(" \t\n\r\f\v");
-    if (first == std::string::npos)
+    if (first == std::string_view::npos)
         return ""; // all whitespace
     const auto last = str.find_last_not_of(" \t\n\r\f\v");
-    return str.substr(first, (last - first + 1));
+    return std::string{str.substr(first, (last - first + 1))};
 }
 
 std::vector<std::string> ExtractURLs(const std::string& text) {
