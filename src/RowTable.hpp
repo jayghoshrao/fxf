@@ -33,8 +33,9 @@ struct RowTable
             | std::ranges::to<std::string>();
     }
 
-    auto Erase(size_t idx)
+    void Erase(size_t idx)
     {
+        if(idx >= data.size()) return;
         data.erase(data.begin() + idx);
     }
 
