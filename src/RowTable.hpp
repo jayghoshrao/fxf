@@ -12,20 +12,21 @@ struct RowTable
 
     std::vector<row_t> data;
 
-    auto& operator[](size_t idx) { return data[idx];}
+    auto& operator[](size_t idx) { return data[idx]; }
+    const auto& operator[](size_t idx) const { return data[idx]; }
 
     auto AddLine(std::string_view line, char delimiter)
     {
         data.emplace_back(line | std::views::split(delimiter) | std::ranges::to<row_t>());
     }
 
-    auto GetRow(size_t idx)
+    auto GetRow(size_t idx) const
     {
         if(idx >= data.size()) return std::vector<std::string>();
         return data[idx];
     }
 
-    std::string GetJoinedRow(size_t idx, std::string_view sep = " ")
+    std::string GetJoinedRow(size_t idx, std::string_view sep = " ") const
     {
         if(idx >= data.size()) return "";
         return data[idx]
@@ -55,7 +56,7 @@ struct RowTable
         return;
     }
 
-    std::vector<std::string> GetMenuEntries(std::string_view viewTemplate)
+    std::vector<std::string> GetMenuEntries(std::string_view viewTemplate) const
     {
         std::vector<std::string> entries;
         for(const row_t& row : data)
@@ -65,7 +66,7 @@ struct RowTable
         return entries;
     }
 
-    std::string Substitute(std::string_view strTemplate, size_t idx)
+    std::string Substitute(std::string_view strTemplate, size_t idx) const
     {
         if(idx >= data.size()) return "";
         return substitute_template(strTemplate, data[idx]);
