@@ -2,7 +2,6 @@
 
 #include <ranges>
 #include <memory>
-#include <numeric>
 #include <regex>
 #include <unistd.h>
 #include <sys/wait.h>
@@ -84,38 +83,6 @@ std::string ExecAndCapture(const std::string& cmd) {
 }
 
 std::string substitute_template(std::string_view template_str, const std::vector<std::string>& data) {
-    std::string result{template_str};
-
-    // Create joined string for {} placeholder
-    std::string joined_data;
-    if (!data.empty()) {
-        joined_data = std::accumulate(data.begin() + 1, data.end(), data[0],
-            [](const std::string& acc, const std::string& s) {
-                return acc + " | " + s;
-            });
-    }
-
-    // Replace {} with joined data
-    size_t pos = 0;
-    while ((pos = result.find("{}", pos)) != std::string::npos) {
-        result.replace(pos, 2, joined_data);
-        pos += joined_data.length();
-    }
-
-    // Replace numbered placeholders {0}, {1}, {2}, etc.
-    for (size_t i = 0; i < data.size(); ++i) {
-        std::string placeholder = "{" + std::to_string(i) + "}";
-        pos = 0;
-        while ((pos = result.find(placeholder, pos)) != std::string::npos) {
-            result.replace(pos, placeholder.length(), data[i]);
-            pos += data[i].length();
-        }
-    }
-
-    return result;
-}
-
-std::string substitute_template_opt(std::string_view template_str, const std::vector<std::string>& data) {
     std::string result;
     result.reserve(template_str.size() * 2);
 
