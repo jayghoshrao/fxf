@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/benchmark/catch_benchmark.hpp>
 #include "utils.hpp"
 
 TEST_CASE("trim removes whitespace", "[utils]") {
@@ -186,4 +187,156 @@ TEST_CASE("ExtractURLs finds all URLs", "[utils]") {
         auto urls = ExtractURLs("no urls here");
         CHECK(urls.empty());
     }
+}
+
+TEST_CASE("substitute_template_opt replaces placeholders", "[utils]") {
+    std::vector<std::string> data = {"apple", "banana", "cherry"};
+
+    SECTION("numbered placeholders") {
+        CHECK(substitute_template_opt("{0}", data) == "apple");
+        CHECK(substitute_template_opt("{1}", data) == "banana");
+        CHECK(substitute_template_opt("{2}", data) == "cherry");
+    }
+
+    SECTION("multiple placeholders") {
+        CHECK(substitute_template_opt("{0} and {1}", data) == "apple and banana");
+    }
+
+    SECTION("repeated placeholders") {
+        CHECK(substitute_template_opt("{0} {0}", data) == "apple apple");
+    }
+
+    SECTION("all columns placeholder") {
+        CHECK(substitute_template_opt("{}", data) == "apple | banana | cherry");
+    }
+
+    SECTION("mixed placeholders") {
+        CHECK(substitute_template_opt("{} - {0}", data) == "apple | banana | cherry - apple");
+    }
+
+    SECTION("no placeholders") {
+        CHECK(substitute_template_opt("hello world", data) == "hello world");
+    }
+
+    SECTION("invalid index kept as-is") {
+        CHECK(substitute_template_opt("{99}", data) == "{99}");
+    }
+
+    SECTION("empty data") {
+        std::vector<std::string> empty;
+        CHECK(substitute_template_opt("{}", empty) == "");
+        CHECK(substitute_template_opt("{0}", empty) == "{0}");
+    }
+
+    SECTION("single element data") {
+        std::vector<std::string> single = {"only"};
+        CHECK(substitute_template_opt("{}", single) == "only");
+        CHECK(substitute_template_opt("{0}", single) == "only");
+    }
+
+    SECTION("non-numeric placeholder kept as-is") {
+        CHECK(substitute_template_opt("{abc}", data) == "{abc}");
+        CHECK(substitute_template_opt("{0a}", data) == "{0a}");
+    }
+
+    SECTION("unclosed brace") {
+        CHECK(substitute_template_opt("{0 text", data) == "{0 text");
+        CHECK(substitute_template_opt("{ no close", data) == "{ no close");
+    }
+
+    SECTION("double-digit index") {
+        std::vector<std::string> large(15, "x");
+        large[10] = "ten";
+        large[14] = "fourteen";
+        CHECK(substitute_template_opt("{10}", large) == "ten");
+        CHECK(substitute_template_opt("{14}", large) == "fourteen");
+    }
+}
+
+TEST_CASE("substitute_template and substitute_template_opt produce same results", "[utils]") {
+    std::vector<std::string> data = {"apple", "banana", "cherry", "date"};
+
+    std::vector<std::string> templates = {
+        "{}",
+        "{0}",
+        "{1}",
+        "{2}",
+        "{3}",
+        "{0} and {1}",
+        "{0} {0} {0}",
+        "{} - {0} - {1}",
+        "no placeholders",
+        "{99}",
+        "prefix {0} middle {1} suffix",
+        "{}{}{}"
+    };
+
+    for (const auto& tmpl : templates) {
+        INFO("Template: " << tmpl);
+        CHECK(substitute_template(tmpl, data) == substitute_template_opt(tmpl, data));
+    }
+}
+
+TEST_CASE("substitute_template performance", "[.benchmark]") {
+    std::vector<std::string> small_data = {"apple", "banana", "cherry"};
+    std::vector<std::string> large_data;
+    for (int i = 0; i < 100; ++i) {
+        large_data.push_back("item_" + std::to_string(i));
+    }
+
+    BENCHMARK("original - simple {0}") {
+        return substitute_template("{0}", small_data);
+    };
+
+    BENCHMARK("optimized - simple {0}") {
+        return substitute_template_opt("{0}", small_data);
+    };
+
+    BENCHMARK("original - all columns {}") {
+        return substitute_template("{}", small_data);
+    };
+
+    BENCHMARK("optimized - all columns {}") {
+        return substitute_template_opt("{}", small_data);
+    };
+
+    BENCHMARK("original - multiple placeholders") {
+        return substitute_template("{0} - {1} - {2}", small_data);
+    };
+
+    BENCHMARK("optimized - multiple placeholders") {
+        return substitute_template_opt("{0} - {1} - {2}", small_data);
+    };
+
+    BENCHMARK("original - mixed {} and {N}") {
+        return substitute_template("{} | {0} | {1} | {2}", small_data);
+    };
+
+    BENCHMARK("optimized - mixed {} and {N}") {
+        return substitute_template_opt("{} | {0} | {1} | {2}", small_data);
+    };
+
+    BENCHMARK("original - large data {}") {
+        return substitute_template("{}", large_data);
+    };
+
+    BENCHMARK("optimized - large data {}") {
+        return substitute_template_opt("{}", large_data);
+    };
+
+    BENCHMARK("original - large data {50}") {
+        return substitute_template("{50}", large_data);
+    };
+
+    BENCHMARK("optimized - large data {50}") {
+        return substitute_template_opt("{50}", large_data);
+    };
+
+    BENCHMARK("original - no placeholders") {
+        return substitute_template("static text without any placeholders", small_data);
+    };
+
+    BENCHMARK("optimized - no placeholders") {
+        return substitute_template_opt("static text without any placeholders", small_data);
+    };
 }
