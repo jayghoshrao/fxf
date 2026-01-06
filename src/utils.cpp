@@ -115,6 +115,68 @@ std::string substitute_template(std::string_view template_str, const std::vector
     return result;
 }
 
+std::string substitute_template_opt(std::string_view template_str, const std::vector<std::string>& data) {
+    std::string result;
+    result.reserve(template_str.size() * 2);
+
+    std::string joined_data;
+    bool joined_computed = false;
+
+    size_t i = 0;
+    while (i < template_str.size()) {
+        if (template_str[i] == '{') {
+            size_t close = template_str.find('}', i + 1);
+            if (close != std::string_view::npos) {
+                std::string_view inner = template_str.substr(i + 1, close - i - 1);
+
+                if (inner.empty()) {
+                    // {} placeholder - lazy compute joined_data
+                    if (!joined_computed) {
+                        if (!data.empty()) {
+                            size_t total_len = data[0].size();
+                            for (size_t j = 1; j < data.size(); ++j) {
+                                total_len += 3 + data[j].size();
+                            }
+                            joined_data.reserve(total_len);
+                            joined_data = data[0];
+                            for (size_t j = 1; j < data.size(); ++j) {
+                                joined_data += " | ";
+                                joined_data += data[j];
+                            }
+                        }
+                        joined_computed = true;
+                    }
+                    result += joined_data;
+                } else {
+                    // Parse {N} placeholder
+                    size_t idx = 0;
+                    bool valid = true;
+                    for (char c : inner) {
+                        if (c >= '0' && c <= '9') {
+                            idx = idx * 10 + (c - '0');
+                        } else {
+                            valid = false;
+                            break;
+                        }
+                    }
+
+                    if (valid && idx < data.size()) {
+                        result += data[idx];
+                    } else {
+                        result.append(template_str.substr(i, close - i + 1));
+                    }
+                }
+                i = close + 1;
+                continue;
+            }
+        }
+        result += template_str[i];
+        ++i;
+    }
+
+    return result;
+}
+
 std::string trim(std::string_view str) {
     const auto first = str.find_first_not_of(" \t\n\r\f\v");
     if (first == std::string_view::npos)
