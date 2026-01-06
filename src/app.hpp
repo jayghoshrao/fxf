@@ -21,6 +21,7 @@ public:
         RowTable lines;
         char delimiter = '|';
         std::string debug = "";
+        std::string output = "";
     };
 
     struct Controls {

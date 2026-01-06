@@ -131,6 +131,12 @@ void CommandRegistry::RegisterDefaultCommands()
         return false;
     });
 
+    Register("select", [this](const std::vector<std::string>& args){
+        m_app.state.output = m_app.state.lines.Substitute(m_app.controls.viewTemplate, m_app.controls.selected);
+        m_app.screen.ExitLoopClosure()();
+        return true;
+    });
+
 }
 
 bool KeybindRegistry::Execute(ftxui::Event event) const{
@@ -185,5 +191,10 @@ void KeybindRegistry::RegisterDefaultKeybinds()
     Register(
         ftxui::Event::o,
         Command("open", Command::ExecutionPolicy::Alias)
+    );
+
+    Register(
+        ftxui::Event::Return,
+        Command("select", Command::ExecutionPolicy::Alias)
     );
 }

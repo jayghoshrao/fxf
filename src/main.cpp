@@ -52,8 +52,8 @@ int main(int argc, char* argv[]) {
 
     app.Loop();
 
-    if (!app.state.debug.empty()) {
-        std::cout << app.state.debug << std::endl;
+    if (!app.state.output.empty()) {
+        std::cout << app.state.output << std::endl;
     }
 
     return EXIT_SUCCESS;
