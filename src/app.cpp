@@ -44,9 +44,18 @@ void App::CreateGUI()
         if(event == Event::CtrlF) { return components.menu->OnEvent(Event::PageDown); }
         if(event == Event::CtrlB) { return components.menu->OnEvent(Event::PageUp); }
 
-        // TODO: half page scrolls
-        if(event == Event::CtrlD) { return components.menu->OnEvent(Event::PageDown); }
-        if(event == Event::CtrlU) { return components.menu->OnEvent(Event::PageUp); }
+        // Half page scrolls
+        if(event == Event::CtrlD) {
+            int halfPage = (Terminal::Size().dimy - 2) / 2;  // -2 for status bar and divider
+            int maxIdx = static_cast<int>(controls.menuEntries.size()) - 1;
+            controls.selected = std::min(controls.selected + halfPage, maxIdx);
+            return true;
+        }
+        if(event == Event::CtrlU) {
+            int halfPage = (Terminal::Size().dimy - 2) / 2;
+            controls.selected = std::max(controls.selected - halfPage, 0);
+            return true;
+        }
 
         got_g = false;
         return false;
