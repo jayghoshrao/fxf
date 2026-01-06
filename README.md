@@ -72,6 +72,19 @@ echo $PATH | tr ':' '\n' | fxf /dev/stdin
 | `0-9` | Show column N |
 | `=` | Show all columns |
 
+### Text Input (Search/Command Mode)
+
+| Key | Action |
+|-----|--------|
+| `Ctrl+A` | Move cursor to beginning |
+| `Ctrl+E` | Move cursor to end |
+| `Ctrl+U` | Delete from beginning to cursor |
+| `Ctrl+K` | Delete from cursor to end |
+| `Ctrl+W` | Delete word before cursor |
+| `Alt+B` | Move back one word |
+| `Alt+F` | Move forward one word |
+| `Escape` | Cancel and exit input mode |
+
 ## Commands
 
 Commands are entered in command mode (`:`)

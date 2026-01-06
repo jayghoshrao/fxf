@@ -13,6 +13,7 @@ public:
     struct ControlHandle {
         std::string placeholder = "";
         std::string string = "";
+        int cursorPosition = 0;
         bool isActive = false;
     };
 
@@ -70,6 +71,7 @@ private:
     ftxui::Component CreateMenu();
     ftxui::Component CreateStatusBar();
     ftxui::Component CreateCommandDialog();
+    static bool HandleReadlineEvent(const ftxui::Event& event, std::string& str, int& cursor);
 
 public:
     State state;

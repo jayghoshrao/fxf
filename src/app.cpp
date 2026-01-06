@@ -101,15 +101,97 @@ void App::FocusSearch()
     components.searchInput->TakeFocus();
 }
 
+bool App::HandleReadlineEvent(const Event& event, std::string& str, int& cursor)
+{
+    // Ensure cursor is within bounds
+    cursor = std::clamp(cursor, 0, static_cast<int>(str.size()));
+
+    // Ctrl+A: Move to beginning of line
+    if (event == Event::Home || event.input() == std::string{1}) {  // Ctrl+A = ASCII 1
+        cursor = 0;
+        return true;
+    }
+
+    // Ctrl+E: Move to end of line
+    if (event == Event::End || event.input() == std::string{5}) {  // Ctrl+E = ASCII 5
+        cursor = static_cast<int>(str.size());
+        return true;
+    }
+
+    // Ctrl+U: Delete from beginning to cursor
+    if (event.input() == std::string{21}) {  // Ctrl+U = ASCII 21
+        str.erase(0, cursor);
+        cursor = 0;
+        return true;
+    }
+
+    // Ctrl+K: Delete from cursor to end
+    if (event.input() == std::string{11}) {  // Ctrl+K = ASCII 11
+        str.erase(cursor);
+        return true;
+    }
+
+    // Ctrl+W: Delete word before cursor
+    if (event.input() == std::string{23}) {  // Ctrl+W = ASCII 23
+        if (cursor > 0) {
+            int end = cursor;
+            // Skip trailing spaces
+            while (cursor > 0 && str[cursor - 1] == ' ') {
+                cursor--;
+            }
+            // Delete word characters
+            while (cursor > 0 && str[cursor - 1] != ' ') {
+                cursor--;
+            }
+            str.erase(cursor, end - cursor);
+        }
+        return true;
+    }
+
+    // Alt+B: Move back one word
+    if (event == Event::AltB) {
+        // Skip spaces
+        while (cursor > 0 && str[cursor - 1] == ' ') {
+            cursor--;
+        }
+        // Move to beginning of word
+        while (cursor > 0 && str[cursor - 1] != ' ') {
+            cursor--;
+        }
+        return true;
+    }
+
+    // Alt+F: Move forward one word
+    if (event == Event::AltF) {
+        int len = static_cast<int>(str.size());
+        // Skip current word
+        while (cursor < len && str[cursor] != ' ') {
+            cursor++;
+        }
+        // Skip spaces
+        while (cursor < len && str[cursor] == ' ') {
+            cursor++;
+        }
+        return true;
+    }
+
+    // Ctrl+B: Move back one character (handled by FTXUI by default as ArrowLeft)
+    // Ctrl+F: Move forward one character (handled by FTXUI by default as ArrowRight)
+
+    return false;
+}
+
 Component App::CreateCommandDialog()
 {
     auto commandInputOption = InputOption::Default();
     commandInputOption.multiline = false;
+    commandInputOption.cursor_position = &controls.commandDialog.cursorPosition;
     commandInputOption.on_enter = [this]{
         screen.Post([this]{
             commands.Execute(controls.commandDialog.string);
             controls.commandDialog.isActive = false;
             controls.commandDialog.string = "";
+            controls.commandDialog.cursorPosition = 0;
         });
     };
 
@@ -128,10 +210,11 @@ Component App::CreateCommandDialog()
         if(event == Event::Escape)
         {
             controls.commandDialog.string = "";
+            controls.commandDialog.cursorPosition = 0;
             controls.commandDialog.isActive = false;
             return true;
         }
-        return false;
+        return HandleReadlineEvent(event, controls.commandDialog.string, controls.commandDialog.cursorPosition);
     });
     return Renderer(commandInput, [=]{ return
         hbox({
@@ -180,6 +263,7 @@ Component App::CreateStatusBar()
 {
     auto searchInputOption = InputOption::Default();
     searchInputOption.multiline = false;
+    searchInputOption.cursor_position = &controls.searchDialog.cursorPosition;
     controls.searchDialog.placeholder = "Press / to fuzzy search";
     searchInputOption.on_enter = [&]{
         screen.Post([&]{
@@ -223,11 +307,12 @@ Component App::CreateStatusBar()
         if(event == Event::Escape)
         {
             controls.searchDialog.string = "";
+            controls.searchDialog.cursorPosition = 0;
             controls.searchDialog.placeholder = "Press / to fuzzy search";
             ResetFocus();
             return true;
         }
-        return false;
+        return HandleReadlineEvent(event, controls.searchDialog.string, controls.searchDialog.cursorPosition);
     });
 
     controls.searchPrompt = "< ";
