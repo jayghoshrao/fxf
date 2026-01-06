@@ -67,6 +67,7 @@ echo $PATH | tr ':' '\n' | fxf /dev/stdin
 | `Ctrl+U` | Half page up |
 | `/` | Enter search mode |
 | `:` | Enter command mode |
+| `Enter` | Select current entry and exit |
 | `q` | Quit |
 | `o` | Open first URL in current row |
 | `0-9` | Show column N |
@@ -97,6 +98,7 @@ Commands are entered in command mode (`:`)
 | `show [N]` | Show column N or all columns |
 | `delete` | Delete current row |
 | `open` | Open first URL in current row |
+| `select` | Output current entry (with view template) and exit |
 | `bind <key> <type> <cmd>` | Bind a key to a command |
 | `command <name> <type> <cmd>` | Create a custom command |
 
