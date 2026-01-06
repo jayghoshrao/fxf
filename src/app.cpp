@@ -46,13 +46,15 @@ void App::CreateGUI()
 
         // Half page scrolls
         if(event == Event::CtrlD) {
-            int halfPage = (Terminal::Size().dimy - 2) / 2;  // -2 for status bar and divider
+            int menuHeight = components.menuBox.y_max - components.menuBox.y_min + 1;
+            int halfPage = std::max(1, menuHeight / 2);
             int maxIdx = static_cast<int>(controls.menuEntries.size()) - 1;
             controls.selected = std::min(controls.selected + halfPage, maxIdx);
             return true;
         }
         if(event == Event::CtrlU) {
-            int halfPage = (Terminal::Size().dimy - 2) / 2;
+            int menuHeight = components.menuBox.y_max - components.menuBox.y_min + 1;
+            int halfPage = std::max(1, menuHeight / 2);
             controls.selected = std::max(controls.selected - halfPage, 0);
             return true;
         }
@@ -249,7 +251,7 @@ Component App::CreateMenu()
     auto menuOption = MenuOption();
     menuOption.entries_option = menuEntryOption;
     menuOption.focused_entry = &controls.focused;
-    auto menu = Menu(&controls.menuEntries, &controls.selected, menuOption) | vscroll_indicator | frame;
+    auto menu = Menu(&controls.menuEntries, &controls.selected, menuOption) | vscroll_indicator | frame | reflect(components.menuBox);
     menu |= CatchEvent([&](Event event) {
         if(controls.selected == 0 
             && (event == Event::k || event == Event::ArrowUp))

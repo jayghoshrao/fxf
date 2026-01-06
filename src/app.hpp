@@ -1,6 +1,7 @@
 #pragma once
 
 #include <ftxui/component/screen_interactive.hpp>
+#include <ftxui/screen/box.hpp>
 
 #include "RowTable.hpp"
 #include "registries.hpp"
@@ -49,6 +50,7 @@ public:
         ftxui::Component mainEventHandler{nullptr};
         ftxui::Component searchInput{nullptr};
         ftxui::Component searchPrompt{nullptr};
+        ftxui::Box menuBox;
     }; 
 
 public:
