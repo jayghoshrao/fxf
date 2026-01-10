@@ -167,10 +167,45 @@ void CommandRegistry::RegisterDefaultCommands()
     });
 
     Register("select", [this](const std::vector<std::string>& args){
-        auto maybeIdx = m_app.GetOriginalIndex(m_app.controls.selected);
-        if (!maybeIdx) return false;
-        m_app.state.output = m_app.state.lines.Substitute(m_app.controls.viewTemplate, *maybeIdx);
+        if (m_app.controls.selections.empty()) {
+            // No multi-selection: use current focused item
+            auto maybeIdx = m_app.GetOriginalIndex(m_app.controls.selected);
+            if (!maybeIdx) return false;
+            m_app.state.output = m_app.state.lines.Substitute(m_app.controls.viewTemplate, *maybeIdx);
+        } else {
+            // Multi-selection: output in original data order
+            std::string output;
+            for (size_t origIdx = 0; origIdx < m_app.state.lines.data.size(); ++origIdx) {
+                if (m_app.controls.selections.contains(origIdx)) {
+                    if (!output.empty()) {
+                        output += '\n';
+                    }
+                    output += m_app.state.lines.Substitute(m_app.controls.viewTemplate, origIdx);
+                }
+            }
+            m_app.state.output = output;
+        }
         m_app.screen.ExitLoopClosure()();
+        return true;
+    });
+
+    Register("select-all", [this](const std::vector<std::string>& args) {
+        m_app.SelectAll();
+        return true;
+    });
+
+    Register("clear-selections", [this](const std::vector<std::string>& args) {
+        m_app.ClearSelections();
+        return true;
+    });
+
+    Register("invert-selections", [this](const std::vector<std::string>& args) {
+        m_app.InvertSelections();
+        return true;
+    });
+
+    Register("toggle-all", [this](const std::vector<std::string>& args) {
+        m_app.InvertSelections();
         return true;
     });
 
@@ -232,5 +267,26 @@ void KeybindRegistry::RegisterDefaultKeybinds()
     Register(
         ftxui::Event::Return,
         Command("select", Command::ExecutionPolicy::Alias)
+    );
+
+    // Tab: Toggle selection, stay in place
+    Register(
+        ftxui::Event::Tab,
+        Command([this](const std::vector<std::string>&){
+            m_app.ToggleSelection(m_app.controls.selected);
+            return true;
+        })
+    );
+
+    // Space: Toggle selection and move down
+    Register(
+        ftxui::Event::Character(' '),
+        Command([this](const std::vector<std::string>&){
+            m_app.ToggleSelection(m_app.controls.selected);
+            if (m_app.controls.selected < static_cast<int>(m_app.controls.menuEntries.size()) - 1) {
+                m_app.controls.selected++;
+            }
+            return true;
+        })
     );
 }
