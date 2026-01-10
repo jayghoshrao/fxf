@@ -303,8 +303,7 @@ Component App::CreateStatusBar()
             }
 
             // Generate menu entries for fuzzy matching (from original data)
-            auto allEntries = state.lines.GetMenuEntries(controls.viewTemplate);
-            auto fuzzyResults = extract(controls.searchDialog.string, allEntries, 0.0);
+            auto fuzzyResults = extract(controls.searchDialog.string, cache.menuEntries, 0.0);
 
             // Create indices and sort by fuzzy score (descending)
             std::vector<size_t> indices(fuzzyResults.size());
@@ -357,12 +356,12 @@ Component App::CreateStatusBar()
 void App::ApplyViewTemplate(std::string_view viewTemplate)
 {
     controls.viewTemplate = viewTemplate;
-    RefreshFilteredView();
+    UpdateFilteredView();
 }
 
 void App::ReapplyViewTemplate()
 {
-    RefreshFilteredView();
+    UpdateFilteredView();
 }
 
 std::optional<size_t> App::GetOriginalIndex(size_t displayIndex) const
@@ -412,13 +411,25 @@ void App::InvertSelections()
     }
 }
 
-void App::RefreshFilteredView()
+void App::UpdateFilteredView()
 {
     controls.menuEntries.clear();
     controls.menuEntries.reserve(controls.filteredIndices.size());
     for (size_t origIdx : controls.filteredIndices) {
         controls.menuEntries.push_back(
             substitute_template(controls.viewTemplate, state.lines[origIdx])
+        );
+    }
+}
+
+void App::RefreshFilteredView()
+{
+    controls.menuEntries.clear();
+    controls.menuEntries.reserve(controls.filteredIndices.size());
+    // TODO: perhaps just copy + re-sort?
+    for (size_t origIdx : controls.filteredIndices) {
+        controls.menuEntries.push_back(
+            cache.menuEntries[origIdx]
         );
     }
 }
@@ -430,5 +441,5 @@ void App::ResetFilter()
     for (size_t i = 0; i < state.lines.data.size(); ++i) {
         controls.filteredIndices.push_back(i);
     }
-    RefreshFilteredView();
+    UpdateFilteredView();
 }

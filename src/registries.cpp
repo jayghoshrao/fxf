@@ -107,7 +107,7 @@ void CommandRegistry::RegisterDefaultCommands()
 
         // Delete from original data
         m_app.state.lines.Erase(origIdx);
-        m_app.RefreshFilteredView();
+        m_app.UpdateFilteredView();
 
         // Adjust selected if it's now out of bounds
         int maxIdx = static_cast<int>(fi.size()) - 1;
@@ -202,7 +202,7 @@ void KeybindRegistry::RegisterDefaultKeybinds()
     Register(
         ftxui::Event::Character('/'),
         Command([this](const std::vector<std::string>&){
-            m_app.cache.menuEntries = m_app.controls.menuEntries;
+            m_app.cache.menuEntries = m_app.state.lines.GetMenuEntries(m_app.controls.viewTemplate);
             m_app.controls.searchDialog.placeholder = "Type to fuzzy search";
             m_app.FocusSearch();
             return true;

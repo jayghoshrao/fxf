@@ -81,6 +81,7 @@ public:
     void ClearSelections();
     void SelectAll();
     void InvertSelections();
+    void UpdateFilteredView();
     void RefreshFilteredView();
     void ResetFilter();
 
