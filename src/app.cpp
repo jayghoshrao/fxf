@@ -240,8 +240,7 @@ Component App::CreateMenu()
     auto menuEntryOption = MenuEntryOption();
     menuEntryOption.transform = [this](const EntryState& s) {
         int scrollBarWidth = 1;
-        int prefixWidth = 2;
-        int entryWidth = Terminal::Size().dimx - scrollBarWidth - prefixWidth;
+        int entryWidth = Terminal::Size().dimx - scrollBarWidth;
         int ellipsesWidth = 3;
         std::string label = s.label;
         if(static_cast<int>(label.size()) > entryWidth)
@@ -249,11 +248,14 @@ Component App::CreateMenu()
 
         bool isMultiSelected = (s.index >= 0) && IsSelected(static_cast<size_t>(s.index));
 
-        std::string prefix = s.active ? "> " : (isMultiSelected ? "* " : "  ");
-        auto elem = text(prefix + label);
+        auto elem = text(label);
 
-        if (s.active || isMultiSelected) {
+        if (s.active && isMultiSelected) {
+            elem = elem | bold | inverted | color(Color::Yellow);
+        } else if (s.active) {
             elem = elem | bold | inverted;
+        } else if (isMultiSelected) {
+            elem = elem | bold | color(Color::Yellow);
         }
 
         return elem;
