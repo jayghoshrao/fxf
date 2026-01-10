@@ -42,8 +42,10 @@ int main(int argc, char* argv[]) {
     if (!filename.empty()) {
         app.Load(filename, delimiter);
     } else if (stdin_is_pipe) {
-        // Data already loaded from pipe, just apply template
-        app.ApplyViewTemplate("{}");
+        // Data already loaded from pipe, initialize filter
+        app.controls.viewTemplate = "{}";
+        app.ResetFilter();
+        app.controls.selected = 0;
     } else {
         // No input provided
         std::cerr << "Error: No input provided. Provide a file or pipe data.\n";
