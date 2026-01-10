@@ -15,7 +15,8 @@ void App::Load(const std::string& filename, char delimiter)
         state.debug = result.error();
         return;
     }
-    this->ApplyViewTemplate("{}");
+    controls.viewTemplate = "{}";
+    ResetFilter();
     controls.selected = 0;
 }
 
@@ -295,19 +296,26 @@ Component App::CreateStatusBar()
 
     searchInputOption.on_change = [&]{
         screen.Post([&]{
-            auto fuzzyResults = extract(controls.searchDialog.string, cache.menuEntries, 0.0);
+            if (controls.searchDialog.string.empty()) {
+                ResetFilter();
+                controls.selected = 0;
+                return;
+            }
+
+            // Generate menu entries for fuzzy matching (from original data)
+            auto allEntries = state.lines.GetMenuEntries(controls.viewTemplate);
+            auto fuzzyResults = extract(controls.searchDialog.string, allEntries, 0.0);
+
+            // Create indices and sort by fuzzy score (descending)
             std::vector<size_t> indices(fuzzyResults.size());
             std::ranges::iota(indices, 0);
-
             std::ranges::sort(indices, std::ranges::greater{}, [&](size_t i) {
                 return fuzzyResults[i].second;
             });
 
-            auto sortedLines = indices | std::views::transform([&](size_t i) { return cache.lines[i]; });
-
-            // Copy back the reordered views into original vectors
-            std::ranges::copy(sortedLines, state.lines.data.begin());
-            controls.menuEntries = state.lines.GetMenuEntries(controls.viewTemplate);
+            // Update filteredIndices (no data copying!)
+            controls.filteredIndices = std::move(indices);
+            RefreshFilteredView();
             controls.selected = 0;
         });
     };
@@ -349,10 +357,78 @@ Component App::CreateStatusBar()
 void App::ApplyViewTemplate(std::string_view viewTemplate)
 {
     controls.viewTemplate = viewTemplate;
-    controls.menuEntries = state.lines.GetMenuEntries(controls.viewTemplate);
+    RefreshFilteredView();
 }
 
 void App::ReapplyViewTemplate()
 {
-    controls.menuEntries = state.lines.GetMenuEntries(controls.viewTemplate);
+    RefreshFilteredView();
+}
+
+std::optional<size_t> App::GetOriginalIndex(size_t displayIndex) const
+{
+    if (displayIndex >= controls.filteredIndices.size()) return std::nullopt;
+    return controls.filteredIndices[displayIndex];
+}
+
+bool App::IsSelected(size_t displayIndex) const
+{
+    auto origIdx = GetOriginalIndex(displayIndex);
+    if (!origIdx) return false;
+    return controls.selections.contains(*origIdx);
+}
+
+void App::ToggleSelection(size_t displayIndex)
+{
+    auto origIdx = GetOriginalIndex(displayIndex);
+    if (!origIdx) return;
+    if (controls.selections.contains(*origIdx)) {
+        controls.selections.erase(*origIdx);
+    } else {
+        controls.selections.insert(*origIdx);
+    }
+}
+
+void App::ClearSelections()
+{
+    controls.selections.clear();
+}
+
+void App::SelectAll()
+{
+    for (size_t origIdx : controls.filteredIndices) {
+        controls.selections.insert(origIdx);
+    }
+}
+
+void App::InvertSelections()
+{
+    for (size_t origIdx : controls.filteredIndices) {
+        if (controls.selections.contains(origIdx)) {
+            controls.selections.erase(origIdx);
+        } else {
+            controls.selections.insert(origIdx);
+        }
+    }
+}
+
+void App::RefreshFilteredView()
+{
+    controls.menuEntries.clear();
+    controls.menuEntries.reserve(controls.filteredIndices.size());
+    for (size_t origIdx : controls.filteredIndices) {
+        controls.menuEntries.push_back(
+            substitute_template(controls.viewTemplate, state.lines[origIdx])
+        );
+    }
+}
+
+void App::ResetFilter()
+{
+    controls.filteredIndices.clear();
+    controls.filteredIndices.reserve(state.lines.data.size());
+    for (size_t i = 0; i < state.lines.data.size(); ++i) {
+        controls.filteredIndices.push_back(i);
+    }
+    RefreshFilteredView();
 }

@@ -73,7 +73,11 @@ enable_testing()
 add_executable(tests
   tests/test_utils.cpp
   tests/test_rowtable.cpp
+  tests/test_app.cpp
   src/utils.cpp
+  src/command.cpp
+  src/registries.cpp
+  src/app.cpp
 )
 target_include_directories(tests PRIVATE src)
 target_link_libraries(tests

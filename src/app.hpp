@@ -3,6 +3,9 @@
 #include <ftxui/component/screen_interactive.hpp>
 #include <ftxui/screen/box.hpp>
 
+#include <optional>
+#include <set>
+
 #include "RowTable.hpp"
 #include "registries.hpp"
 
@@ -27,6 +30,8 @@ public:
 
     struct Controls {
         std::vector<std::string> menuEntries;
+        std::vector<size_t> filteredIndices;  // Maps display position -> original index
+        std::set<size_t> selections;          // Selected original indices
         int selected = 0;
         int focused = 0;
         ControlHandle commandDialog;
@@ -38,7 +43,6 @@ public:
 
     struct Cache {
         std::vector<std::string> menuEntries;
-        RowTable lines;
     };
 
     struct ComponentChildren {
@@ -69,6 +73,16 @@ public:
     void FocusSearch();
     void ApplyViewTemplate(std::string_view viewTemplate);
     void ReapplyViewTemplate();
+
+    // Index and selection helpers
+    std::optional<size_t> GetOriginalIndex(size_t displayIndex) const;
+    bool IsSelected(size_t displayIndex) const;
+    void ToggleSelection(size_t displayIndex);
+    void ClearSelections();
+    void SelectAll();
+    void InvertSelections();
+    void RefreshFilteredView();
+    void ResetFilter();
 
 private:
     ftxui::Component CreateMenu();

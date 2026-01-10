@@ -80,8 +80,41 @@ void CommandRegistry::RegisterDefaultCommands()
     });
 
     Register("delete", [this](const std::vector<std::string>& args) {
-        m_app.state.lines.Erase(m_app.controls.selected);
-        m_app.ReapplyViewTemplate();
+        auto maybeIdx = m_app.GetOriginalIndex(m_app.controls.selected);
+        if (!maybeIdx) return false;
+        size_t origIdx = *maybeIdx;
+
+        // Remove from selections
+        m_app.controls.selections.erase(origIdx);
+
+        // Adjust selections: decrement indices greater than deleted
+        std::set<size_t> adjusted;
+        for (size_t idx : m_app.controls.selections) {
+            if (idx > origIdx) {
+                adjusted.insert(idx - 1);
+            } else {
+                adjusted.insert(idx);
+            }
+        }
+        m_app.controls.selections = std::move(adjusted);
+
+        // Remove from filteredIndices and adjust remaining indices
+        auto& fi = m_app.controls.filteredIndices;
+        fi.erase(std::remove(fi.begin(), fi.end(), origIdx), fi.end());
+        for (size_t& idx : fi) {
+            if (idx > origIdx) idx--;
+        }
+
+        // Delete from original data
+        m_app.state.lines.Erase(origIdx);
+        m_app.RefreshFilteredView();
+
+        // Adjust selected if it's now out of bounds
+        int maxIdx = static_cast<int>(fi.size()) - 1;
+        if (m_app.controls.selected > maxIdx) {
+            m_app.controls.selected = std::max(0, maxIdx);
+        }
+
         return true;
     });
 
@@ -122,7 +155,9 @@ void CommandRegistry::RegisterDefaultCommands()
     });
 
     Register("open", [this](const std::vector<std::string>& args){
-        auto str = m_app.state.lines.GetJoinedRow(m_app.controls.selected);
+        auto maybeIdx = m_app.GetOriginalIndex(m_app.controls.selected);
+        if (!maybeIdx) return false;
+        auto str = m_app.state.lines.GetJoinedRow(*maybeIdx);
         if(const std::string& url = ExtractFirstURL(str); !url.empty())
         {
             Command("xdg-open" , Command::ExecutionPolicy::Silent).Execute(url);
@@ -132,7 +167,9 @@ void CommandRegistry::RegisterDefaultCommands()
     });
 
     Register("select", [this](const std::vector<std::string>& args){
-        m_app.state.output = m_app.state.lines.Substitute(m_app.controls.viewTemplate, m_app.controls.selected);
+        auto maybeIdx = m_app.GetOriginalIndex(m_app.controls.selected);
+        if (!maybeIdx) return false;
+        m_app.state.output = m_app.state.lines.Substitute(m_app.controls.viewTemplate, *maybeIdx);
         m_app.screen.ExitLoopClosure()();
         return true;
     });
@@ -166,7 +203,6 @@ void KeybindRegistry::RegisterDefaultKeybinds()
         ftxui::Event::Character('/'),
         Command([this](const std::vector<std::string>&){
             m_app.cache.menuEntries = m_app.controls.menuEntries;
-            m_app.cache.lines = m_app.state.lines;
             m_app.controls.searchDialog.placeholder = "Type to fuzzy search";
             m_app.FocusSearch();
             return true;
