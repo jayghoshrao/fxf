@@ -3,7 +3,7 @@
 all:build
 
 build:
-	cmake -S . -B build && cmake --build build
+	cmake -S . -B build && cmake --build build -j
 
 run: build
 	@./build/fxf test.list

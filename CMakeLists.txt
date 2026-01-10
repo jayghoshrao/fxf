@@ -10,7 +10,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# --- Fetch FTXUI --------------------------------------------------------------
+# --- Fetch Dependencies -------------------------------------------------------
 include(FetchContent)
 
 set(FETCHCONTENT_UPDATES_DISCONNECTED ON)
@@ -23,34 +23,26 @@ FetchContent_Declare(ftxui
   GIT_SHALLOW    TRUE
   EXCLUDE_FROM_ALL
 )
-FetchContent_MakeAvailable(ftxui)
 
-# ------------------------------------------------------------------------------
-include(FetchContent)
-
-# --- Fetch CLI11 --------------------------------------------------------------
-FetchContent_Declare(
-    cli11_proj
-    QUIET
-    GIT_REPOSITORY https://github.com/CLIUtils/CLI11.git
-    GIT_TAG v2.5.0
+FetchContent_Declare(cli11_proj
+  GIT_REPOSITORY https://github.com/CLIUtils/CLI11.git
+  GIT_TAG        v2.5.0
+  GIT_SHALLOW    TRUE
 )
-FetchContent_MakeAvailable(cli11_proj)
 
-# --- Fetch rapidfuzz ----------------------------------------------------------
 FetchContent_Declare(rapidfuzz
   GIT_REPOSITORY https://github.com/rapidfuzz/rapidfuzz-cpp.git
-  GIT_TAG main)
-FetchContent_MakeAvailable(rapidfuzz)
-
-# --- Fetch Catch2 -------------------------------------------------------------
-FetchContent_Declare(
-  Catch2
-  GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-  GIT_TAG v3.5.2
-  GIT_SHALLOW TRUE
+  GIT_TAG        main
+  GIT_SHALLOW    TRUE
 )
-FetchContent_MakeAvailable(Catch2)
+
+FetchContent_Declare(Catch2
+  GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+  GIT_TAG        v3.5.2
+  GIT_SHALLOW    TRUE
+)
+
+FetchContent_MakeAvailable(ftxui cli11_proj rapidfuzz Catch2)
 
 # ------------------------------------------------------------------------------
 
