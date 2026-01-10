@@ -84,6 +84,7 @@ public:
     void UpdateFilteredView();
     void RefreshFilteredView();
     void ResetFilter();
+    void UpdateSearch();
 
 private:
     ftxui::Component CreateMenu();

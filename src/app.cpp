@@ -294,31 +294,7 @@ Component App::CreateStatusBar()
         return state.element;
     };
 
-    searchInputOption.on_change = [&]{
-        screen.Post([&]{
-            if (controls.searchDialog.string.empty()) {
-                ResetFilter();
-                controls.selected = 0;
-                return;
-            }
-
-            // Generate menu entries for fuzzy matching (from original data)
-            auto fuzzyResults = extract(controls.searchDialog.string, cache.menuEntries, 0.0);
-
-            // Create indices and sort by fuzzy score (descending)
-            std::vector<size_t> indices(fuzzyResults.size());
-            std::ranges::iota(indices, 0);
-            std::ranges::sort(indices, std::ranges::greater{}, [&](size_t i) {
-                return fuzzyResults[i].second;
-            });
-
-            // Update filteredIndices (no data copying!)
-            controls.filteredIndices = std::move(indices);
-            RefreshFilteredView();
-            controls.selected = 0;
-        });
-    };
-
+    searchInputOption.on_change = [&]{ UpdateSearch(); };
 
     auto searchInput = Input(&controls.searchDialog.string, &controls.searchDialog.placeholder, searchInputOption) ;
     searchInput |= CatchEvent([&](Event event){
@@ -327,10 +303,15 @@ Component App::CreateStatusBar()
             controls.searchDialog.string = "";
             controls.searchDialog.cursorPosition = 0;
             controls.searchDialog.placeholder = "Press / to fuzzy search";
+            ResetFilter();
             ResetFocus();
             return true;
         }
-        return HandleReadlineEvent(event, controls.searchDialog.string, controls.searchDialog.cursorPosition);
+        bool handled = HandleReadlineEvent(event, controls.searchDialog.string, controls.searchDialog.cursorPosition);
+        if (handled) {
+            UpdateSearch();
+        }
+        return handled;
     });
 
     controls.searchPrompt = "< ";
@@ -442,4 +423,27 @@ void App::ResetFilter()
         controls.filteredIndices.push_back(i);
     }
     UpdateFilteredView();
+}
+
+void App::UpdateSearch()
+{
+    screen.Post([&]{
+        if (controls.searchDialog.string.empty()) {
+            ResetFilter();
+            controls.selected = 0;
+            return;
+        }
+
+        auto fuzzyResults = extract(controls.searchDialog.string, cache.menuEntries, 0.0);
+
+        std::vector<size_t> indices(fuzzyResults.size());
+        std::ranges::iota(indices, 0);
+        std::ranges::sort(indices, std::ranges::greater{}, [&](size_t i) {
+            return fuzzyResults[i].second;
+        });
+
+        controls.filteredIndices = std::move(indices);
+        RefreshFilteredView();
+        controls.selected = 0;
+    });
 }
