@@ -10,3 +10,15 @@ run: build
 
 clean:
 	@rm -rf build
+
+read: build
+	@./build/fxf test.list
+
+pipe: build
+	@cat test.list | ./build/fxf | vipe
+
+ls: build
+	@ls . --color=never | ./build/fxf
+
+vimgrep: build
+	@rg --vimgrep label | ./build/fxf
