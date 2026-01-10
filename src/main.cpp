@@ -19,6 +19,7 @@ int main(int argc, char* argv[]) {
     CLI11_PARSE(args, argc, argv);
 
     bool stdin_is_pipe = !isatty(STDIN_FILENO);
+    bool stdout_is_pipe = !isatty(STDOUT_FILENO);
 
     // If stdin is a pipe, read data from it
     if (stdin_is_pipe) {
@@ -34,6 +35,20 @@ int main(int argc, char* argv[]) {
         }
 
         app.state.delimiter = delimiter;
+    }
+
+    // If stdout is a pipe, save it and redirect stdout to /dev/tty for the TUI
+    int saved_stdout = -1;
+    if (stdout_is_pipe) {
+        saved_stdout = dup(STDOUT_FILENO);
+        if (saved_stdout == -1) {
+            std::cerr << "Error: Cannot save stdout\n";
+            return EXIT_FAILURE;
+        }
+        if (!freopen("/dev/tty", "w", stdout)) {
+            std::cerr << "Error: Cannot open /dev/tty for terminal output\n";
+            return EXIT_FAILURE;
+        }
     }
 
     app.CreateGUI();
@@ -53,6 +68,13 @@ int main(int argc, char* argv[]) {
     }
 
     app.Loop();
+
+    // Restore stdout if it was redirected
+    if (saved_stdout != -1) {
+        fflush(stdout);
+        dup2(saved_stdout, STDOUT_FILENO);
+        close(saved_stdout);
+    }
 
     if (!app.state.output.empty()) {
         std::cout << app.state.output << std::endl;
