@@ -240,7 +240,7 @@ void KeybindRegistry::RegisterDefaultKeybinds()
     Register(
         ftxui::Event::Character(':'),
         Command([this](const std::vector<std::string>&){
-            m_app.controls.commandDialog.isActive = true;
+            m_app.SetMode(AppMode::Command);
             return true;
         })
     );

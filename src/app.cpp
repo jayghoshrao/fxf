@@ -94,14 +94,14 @@ void App::CreateGUI()
             });
     components.commandDialog = this->CreateCommandDialog();
 
-    components.mainContainer = components.baseContainer | Modal(components.commandDialog, &controls.commandDialog.isActive);
+    components.mainContainer = components.baseContainer | Modal(components.commandDialog, &m_commandModalVisible);
 
     commands.RegisterDefaultCommands();
     keybinds.RegisterDefaultKeybinds();
 
     components.mainEventHandler = CatchEvent(components.mainContainer, [this](Event event){
-        // Check actual focus state instead of manual flags for searchInput
-        if(controls.commandDialog.isActive || components.searchInput->Focused())
+        // Only dispatch keybinds in Normal mode
+        if(mode != AppMode::Normal)
         {
             return false;
         }
@@ -118,18 +118,34 @@ void App::Loop()
 
 void App::ResetFocus()
 {
-    controls.commandDialog.isActive = false;
-    controls.searchDialog.isActive = false;
-    controls.searchPrompt = "< ";
-    components.menu->TakeFocus();
+    SetMode(AppMode::Normal);
 }
 
 void App::FocusSearch()
 {
-    controls.commandDialog.isActive = false;
-    controls.searchDialog.isActive = true;
-    controls.searchPrompt = "> ";
-    components.searchInput->TakeFocus();
+    SetMode(AppMode::Search);
+}
+
+void App::SetMode(AppMode newMode)
+{
+    if (mode == newMode) return;
+
+    mode = newMode;
+    m_commandModalVisible = (mode == AppMode::Command);
+
+    switch(mode) {
+        case AppMode::Normal:
+            controls.searchPrompt = "< ";
+            components.menu->TakeFocus();
+            break;
+        case AppMode::Search:
+            controls.searchPrompt = "> ";
+            components.searchInput->TakeFocus();
+            break;
+        case AppMode::Command:
+            // Modal() handles focus automatically
+            break;
+    }
 }
 
 bool App::HandleReadlineEvent(const Event& event, std::string& str, int& cursor)
@@ -220,9 +236,9 @@ Component App::CreateCommandDialog()
     commandInputOption.on_enter = [this]{
         screen.Post([this]{
             commands.Execute(controls.commandDialog.string);
-            controls.commandDialog.isActive = false;
             controls.commandDialog.string = "";
             controls.commandDialog.cursorPosition = 0;
+            SetMode(AppMode::Normal);
         });
     };
 
@@ -237,12 +253,12 @@ Component App::CreateCommandDialog()
     };
 
     auto commandInput = Input(&controls.commandDialog.string, &controls.commandDialog.string, commandInputOption);
-    commandInput |= CatchEvent([&](Event event){
+    commandInput |= CatchEvent([this](Event event){
         if(event == Event::Escape)
         {
             controls.commandDialog.string = "";
             controls.commandDialog.cursorPosition = 0;
-            controls.commandDialog.isActive = false;
+            SetMode(AppMode::Normal);
             return true;
         }
         return HandleReadlineEvent(event, controls.commandDialog.string, controls.commandDialog.cursorPosition);
@@ -343,6 +359,7 @@ Component App::CreateStatusBar()
             UpdatePreviewIfNeeded();
             return true;
         }
+
         bool handled = HandleReadlineEvent(event, controls.searchDialog.string, controls.searchDialog.cursorPosition);
         if (handled) {
             UpdateSearch();

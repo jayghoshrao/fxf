@@ -12,6 +12,13 @@
 #include "registries.hpp"
 #include "scope.hpp"
 
+// Application mode state machine
+enum class AppMode {
+    Normal,   // Menu navigation, keybinds active
+    Search,   // Search input focused, live filtering
+    Command   // Command dialog open (modal)
+};
+
 class App
 {
 public:
@@ -79,6 +86,11 @@ public:
     KeybindRegistry keybinds{*this};
     Scope scope;
 
+    // Mode state machine
+    AppMode mode = AppMode::Normal;
+    void SetMode(AppMode newMode);
+    AppMode GetMode() const { return mode; }
+
     void Load(const std::string& filename, char delimiter);
     void CreateGUI();
     void Loop();
@@ -116,6 +128,9 @@ private:
     // Async preview state
     std::future<std::string> m_previewFuture;
     std::atomic<size_t> m_previewRequestId{0};
+
+    // Modal visibility for FTXUI Modal() operator
+    bool m_commandModalVisible = false;
 
 public:
     State state;
