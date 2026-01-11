@@ -100,7 +100,8 @@ void App::CreateGUI()
     keybinds.RegisterDefaultKeybinds();
 
     components.mainEventHandler = CatchEvent(components.mainContainer, [this](Event event){
-        if(controls.commandDialog.isActive || controls.searchDialog.isActive)
+        // Check actual focus state instead of manual flags for searchInput
+        if(controls.commandDialog.isActive || components.searchInput->Focused())
         {
             return false;
         }
