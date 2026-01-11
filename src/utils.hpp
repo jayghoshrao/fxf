@@ -1,6 +1,8 @@
 #pragma once
 #include <string_view>
 #include <vector>
+#include <algorithm>
+#include <cctype>
 #include <ftxui/component/event.hpp>
 #include <rapidfuzz/fuzz.hpp>
 
@@ -18,19 +20,47 @@ std::string ExtractFirstURL(const std::string& text);
 std::vector<std::string> SplitCommand(std::string_view cmd);
 int ExecNoShell(std::string_view cmd);
 
-template <typename Sentence1,
-typename Iterable, typename Sentence2 = typename Iterable::value_type>
-std::vector<std::pair<Sentence2, double>>
-extract(const Sentence1& query, const Iterable& choices, const double score_cutoff = 0.0)
+// Smart case: case-insensitive if query is all lowercase, case-sensitive if any uppercase
+inline bool hasUppercase(std::string_view str) {
+    return std::ranges::any_of(str, [](unsigned char c) { return std::isupper(c); });
+}
+
+inline std::string toLower(std::string_view str) {
+    std::string result(str);
+    std::ranges::transform(result, result.begin(), [](unsigned char c) { return std::tolower(c); });
+    return result;
+}
+
+// Returns vector of (original_index, score) pairs for choices that pass the cutoff
+template <typename Sentence1, typename Iterable>
+std::vector<std::pair<size_t, double>>
+extract(const Sentence1& query, const Iterable& choices, const double score_cutoff = 70.0)
 {
-    std::vector<std::pair<Sentence2, double>> results;
-    rapidfuzz::fuzz::CachedPartialTokenSetRatio<typename Sentence1::value_type> scorer(query);
+    std::vector<std::pair<size_t, double>> results;
 
-    for (const auto& choice : choices) {
-        double score = scorer.similarity(choice, score_cutoff);
+    bool caseSensitive = hasUppercase(query);
 
-        if (score >= score_cutoff) {
-            results.emplace_back(choice, score);
+    if (caseSensitive) {
+        rapidfuzz::fuzz::CachedPartialRatio<typename Sentence1::value_type> scorer(query);
+        size_t idx = 0;
+        for (const auto& choice : choices) {
+            double score = scorer.similarity(choice, score_cutoff);
+            if (score >= score_cutoff) {
+                results.emplace_back(idx, score);
+            }
+            ++idx;
+        }
+    } else {
+        std::string lowerQuery = toLower(query);
+        rapidfuzz::fuzz::CachedPartialRatio<char> scorer(lowerQuery);
+        size_t idx = 0;
+        for (const auto& choice : choices) {
+            std::string lowerChoice = toLower(choice);
+            double score = scorer.similarity(lowerChoice, score_cutoff);
+            if (score >= score_cutoff) {
+                results.emplace_back(idx, score);
+            }
+            ++idx;
         }
     }
 

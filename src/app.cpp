@@ -469,15 +469,19 @@ void App::UpdateSearch()
             return;
         }
 
-        auto fuzzyResults = extract(controls.searchDialog.string, cache.menuEntries, 0.0);
+        auto fuzzyResults = extract(controls.searchDialog.string, cache.menuEntries);
 
-        std::vector<size_t> indices(fuzzyResults.size());
-        std::ranges::iota(indices, 0);
-        std::ranges::sort(indices, std::ranges::greater{}, [&](size_t i) {
-            return fuzzyResults[i].second;
+        // Sort by score descending
+        std::ranges::sort(fuzzyResults, std::ranges::greater{}, [](const auto& p) {
+            return p.second;
         });
 
-        controls.filteredIndices = std::move(indices);
+        // Extract indices in sorted order
+        controls.filteredIndices.clear();
+        controls.filteredIndices.reserve(fuzzyResults.size());
+        for (const auto& [idx, score] : fuzzyResults) {
+            controls.filteredIndices.push_back(idx);
+        }
         RefreshFilteredView();
         controls.selected = 0;
     });
