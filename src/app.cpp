@@ -287,12 +287,19 @@ Component App::CreateMenu()
 
         auto elem = text(label);
 
-        if (s.active && isMultiSelected) {
-            elem = elem | bold | inverted | color(Color::Yellow);
-        } else if (s.active) {
-            elem = elem | bold | inverted;
-        } else if (isMultiSelected) {
-            elem = elem | bold | color(Color::Yellow);
+        if(s.active || isMultiSelected)
+        {
+            elem |= bold;
+
+            if(isMultiSelected)
+            {
+                elem |= color(Color::Yellow);
+            }
+
+            if(s.active && mode != AppMode::Search)
+            {
+                elem |= inverted;
+            }
         }
 
         return elem;
