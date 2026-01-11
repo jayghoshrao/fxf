@@ -349,6 +349,14 @@ Component App::CreateStatusBar()
 
     auto searchInput = Input(&controls.searchDialog.string, &controls.searchDialog.placeholder, searchInputOption) ;
     searchInput |= CatchEvent([this](Event event){
+
+        // Navigation events that move focus out of search
+        if(event == Event::ArrowDown || event == Event::ArrowUp ||
+           event == Event::Tab || event == Event::TabReverse)
+        {
+            return true;  // Noop, avoid ftxui focus change.
+        }
+
         if(event == Event::Escape)
         {
             controls.searchDialog.string = "";
