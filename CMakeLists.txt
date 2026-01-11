@@ -46,7 +46,7 @@ FetchContent_MakeAvailable(ftxui cli11_proj rapidfuzz Catch2)
 
 # ------------------------------------------------------------------------------
 
-add_executable(fxf src/utils.cpp src/command.cpp src/registries.cpp src/app.cpp src/main.cpp)
+add_executable(fxf src/utils.cpp src/command.cpp src/registries.cpp src/scope.cpp src/app.cpp src/main.cpp)
 target_include_directories(fxf PRIVATE src)
 
 target_link_libraries(fxf
@@ -77,6 +77,7 @@ add_executable(tests
   src/utils.cpp
   src/command.cpp
   src/registries.cpp
+  src/scope.cpp
   src/app.cpp
 )
 target_include_directories(tests PRIVATE src)

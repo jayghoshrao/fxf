@@ -209,6 +209,17 @@ void CommandRegistry::RegisterDefaultCommands()
         return true;
     });
 
+    Register("preview", [this](const std::vector<std::string>& args) {
+        m_app.TogglePreview();
+        return true;
+    });
+
+    Register("preview-refresh", [this](const std::vector<std::string>& args) {
+        m_app.scope.ClearCache();
+        m_app.UpdatePreview();
+        return true;
+    });
+
 }
 
 bool KeybindRegistry::Execute(ftxui::Event event) const{
@@ -289,4 +300,33 @@ void KeybindRegistry::RegisterDefaultKeybinds()
             return true;
         })
     );
+
+    // p: Toggle preview
+    Register(
+        ftxui::Event::Character('p'),
+        Command("preview", Command::ExecutionPolicy::Alias)
+    );
+
+    // Shift+J: Scroll preview down
+    Register(
+        ftxui::Event::Character('J'),
+        Command([this](const std::vector<std::string>&){
+            if (m_app.controls.preview.isVisible) {
+                m_app.ScrollPreviewDown();
+            }
+            return true;
+        })
+    );
+
+    // Shift+K: Scroll preview up
+    Register(
+        ftxui::Event::Character('K'),
+        Command([this](const std::vector<std::string>&){
+            if (m_app.controls.preview.isVisible) {
+                m_app.ScrollPreviewUp();
+            }
+            return true;
+        })
+    );
+
 }

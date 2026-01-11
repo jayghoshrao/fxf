@@ -4,6 +4,7 @@
 
 #include <ftxui/component/component.hpp>
 #include <numeric>
+#include <sstream>
 
 using namespace ftxui;
 
@@ -69,10 +70,27 @@ void App::CreateGUI()
     }) | size(HEIGHT, EQUAL, 1);
 
     components.statusBar = this->CreateStatusBar();
+    components.previewPane = this->CreatePreviewPane();
+
+    // Content area: menu with optional preview split
+    // Use Renderer(child, render_fn) to keep menu in component tree for focus/events
+    auto menuWithPreview = Renderer(components.menu, [this]{
+        int termWidth = Terminal::Size().dimx;
+        int halfWidth = termWidth / 2;
+
+        if (controls.preview.isVisible) {
+            return hbox({
+                components.menu->Render() | size(WIDTH, EQUAL, halfWidth),
+                components.previewPane->Render() | size(WIDTH, EQUAL, halfWidth),
+            });
+        }
+        return components.menu->Render() | flex;
+    });
+
     components.baseContainer = Container::Vertical({
             components.statusBar,
             divider,
-            components.menu,
+            menuWithPreview,
             });
     components.commandDialog = this->CreateCommandDialog();
 
@@ -240,7 +258,9 @@ Component App::CreateMenu()
     auto menuEntryOption = MenuEntryOption();
     menuEntryOption.transform = [this](const EntryState& s) {
         int scrollBarWidth = 1;
-        int entryWidth = Terminal::Size().dimx - scrollBarWidth;
+        int termWidth = Terminal::Size().dimx;
+        int menuWidth = controls.preview.isVisible ? termWidth / 2 : termWidth;
+        int entryWidth = menuWidth - scrollBarWidth;
         int ellipsesWidth = 3;
         std::string label = s.label;
         if(static_cast<int>(label.size()) > entryWidth)
@@ -264,6 +284,7 @@ Component App::CreateMenu()
     auto menuOption = MenuOption();
     menuOption.entries_option = menuEntryOption;
     menuOption.focused_entry = &controls.focused;
+    menuOption.on_change = [this]{ UpdatePreviewIfNeeded(); };
     auto menu = Menu(&controls.menuEntries, &controls.selected, menuOption) | vscroll_indicator | frame | reflect(components.menuBox);
     menu |= CatchEvent([&](Event event) {
         if(controls.selected == 0 
@@ -289,14 +310,15 @@ Component App::CreateStatusBar()
     searchInputOption.multiline = false;
     searchInputOption.cursor_position = &controls.searchDialog.cursorPosition;
     controls.searchDialog.placeholder = "Press / to fuzzy search";
-    searchInputOption.on_enter = [&]{
-        screen.Post([&]{
+    searchInputOption.on_enter = [this]{
+        screen.Post([this]{
             controls.focused = 0;
             if(controls.searchDialog.string.empty())
             {
                 controls.searchDialog.placeholder = "Press / to fuzzy search";
             }
             this->ResetFocus();
+            this->UpdatePreviewIfNeeded();
         });
     };
 
@@ -309,7 +331,7 @@ Component App::CreateStatusBar()
     searchInputOption.on_change = [&]{ UpdateSearch(); };
 
     auto searchInput = Input(&controls.searchDialog.string, &controls.searchDialog.placeholder, searchInputOption) ;
-    searchInput |= CatchEvent([&](Event event){
+    searchInput |= CatchEvent([this](Event event){
         if(event == Event::Escape)
         {
             controls.searchDialog.string = "";
@@ -317,6 +339,7 @@ Component App::CreateStatusBar()
             controls.searchDialog.placeholder = "Press / to fuzzy search";
             ResetFilter();
             ResetFocus();
+            UpdatePreviewIfNeeded();
             return true;
         }
         bool handled = HandleReadlineEvent(event, controls.searchDialog.string, controls.searchDialog.cursorPosition);
@@ -457,5 +480,99 @@ void App::UpdateSearch()
         controls.filteredIndices = std::move(indices);
         RefreshFilteredView();
         controls.selected = 0;
+    });
+}
+
+void App::TogglePreview()
+{
+    controls.preview.isVisible = !controls.preview.isVisible;
+    if (controls.preview.isVisible) {
+        UpdatePreview();
+    }
+}
+
+void App::UpdatePreview()
+{
+    if (!controls.preview.isVisible) return;
+
+    controls.preview.content = "Loading...";
+    controls.preview.scrollPosition = 0;
+
+    auto maybeIdx = GetOriginalIndex(static_cast<size_t>(controls.selected));
+    if (!maybeIdx) {
+        controls.preview.content = "No item selected";
+        return;
+    }
+
+    std::string entry = state.lines.GetJoinedRow(*maybeIdx);
+    size_t requestId = ++m_previewRequestId;
+
+    m_previewFuture = std::async(std::launch::async, [this, entry, requestId]() -> std::string {
+        std::string result = scope.Process(entry);
+        screen.Post([this, result, requestId]{
+            if (requestId == m_previewRequestId) {
+                controls.preview.content = result;
+            }
+        });
+        // Trigger a screen redraw after content is updated
+        screen.PostEvent(Event::Custom);
+        return result;
+    });
+
+    controls.preview.lastProcessedIndex = *maybeIdx;
+}
+
+void App::UpdatePreviewIfNeeded()
+{
+    if (!controls.preview.isVisible) return;
+
+    auto maybeIdx = GetOriginalIndex(static_cast<size_t>(controls.selected));
+    if (!maybeIdx) return;
+
+    if (*maybeIdx != controls.preview.lastProcessedIndex) {
+        UpdatePreview();
+    }
+}
+
+void App::ScrollPreviewUp()
+{
+    if (controls.preview.scrollPosition > 0) {
+        controls.preview.scrollPosition--;
+    }
+}
+
+void App::ScrollPreviewDown()
+{
+    controls.preview.scrollPosition++;
+}
+
+Component App::CreatePreviewPane()
+{
+    return Renderer([this]{
+        if (controls.preview.content.empty()) {
+            return window(text(" Preview "), text("No preview") | dim | center) | flex;
+        }
+
+        Elements lines;
+        std::istringstream iss(controls.preview.content);
+        std::string line;
+        while (std::getline(iss, line)) {
+            lines.push_back(text(line));
+        }
+
+        // Apply scroll offset
+        int scrollOffset = controls.preview.scrollPosition;
+        int totalLines = static_cast<int>(lines.size());
+        int visibleStart = std::min(scrollOffset, std::max(0, totalLines - 1));
+
+        Elements visibleLines;
+        for (int i = visibleStart; i < totalLines; ++i) {
+            visibleLines.push_back(std::move(lines[i]));
+        }
+
+        return window(
+            text(" Preview "),
+            vbox(std::move(visibleLines)) | vscroll_indicator | frame | flex
+        ) | flex;
     });
 }

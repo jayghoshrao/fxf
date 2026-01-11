@@ -5,9 +5,12 @@
 
 #include <optional>
 #include <set>
+#include <future>
+#include <atomic>
 
 #include "RowTable.hpp"
 #include "registries.hpp"
+#include "scope.hpp"
 
 class App
 {
@@ -28,6 +31,13 @@ public:
         std::string output = "";
     };
 
+    struct PreviewState {
+        bool isVisible = false;
+        std::string content = "";
+        size_t lastProcessedIndex = SIZE_MAX;
+        int scrollPosition = 0;
+    };
+
     struct Controls {
         std::vector<std::string> menuEntries;
         std::vector<size_t> filteredIndices;  // Maps display position -> original index
@@ -39,6 +49,7 @@ public:
         ControlHandle searchDialog;
         std::string viewTemplate = "{}";
         std::string searchPrompt = "> ";
+        PreviewState preview;
     };
 
     struct Cache {
@@ -54,6 +65,7 @@ public:
         ftxui::Component mainEventHandler{nullptr};
         ftxui::Component searchInput{nullptr};
         ftxui::Component searchPrompt{nullptr};
+        ftxui::Component previewPane{nullptr};
         ftxui::Box menuBox;
     }; 
 
@@ -65,6 +77,7 @@ public:
 
     CommandRegistry commands{*this};
     KeybindRegistry keybinds{*this};
+    Scope scope;
 
     void Load(const std::string& filename, char delimiter);
     void CreateGUI();
@@ -86,11 +99,23 @@ public:
     void ResetFilter();
     void UpdateSearch();
 
+    // Preview methods
+    void TogglePreview();
+    void UpdatePreview();
+    void UpdatePreviewIfNeeded();
+    void ScrollPreviewUp();
+    void ScrollPreviewDown();
+
 private:
     ftxui::Component CreateMenu();
     ftxui::Component CreateStatusBar();
     ftxui::Component CreateCommandDialog();
+    ftxui::Component CreatePreviewPane();
     static bool HandleReadlineEvent(const ftxui::Event& event, std::string& str, int& cursor);
+
+    // Async preview state
+    std::future<std::string> m_previewFuture;
+    std::atomic<size_t> m_previewRequestId{0};
 
 public:
     State state;
