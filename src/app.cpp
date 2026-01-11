@@ -285,7 +285,7 @@ Component App::CreateMenu()
     menuOption.entries_option = menuEntryOption;
     menuOption.focused_entry = &controls.focused;
     menuOption.on_change = [this]{ UpdatePreviewIfNeeded(); };
-    auto menu = Menu(&controls.menuEntries, &controls.selected, menuOption) | vscroll_indicator | frame | reflect(components.menuBox);
+    auto menu = Menu(&controls.menuEntries, &controls.selected, menuOption) | vscroll_indicator | yframe | reflect(components.menuBox);
     menu |= CatchEvent([&](Event event) {
         if(controls.selected == 0 
             && (event == Event::k || event == Event::ArrowUp))
